@@ -1,0 +1,82 @@
+TOP_DIR := {{TOP_DIR}}
+
+DEPS_{{THIS_DIR}} =
+
+# when calling make in *this* directory goto toplevel makefile
+# needs to be the first target
+ifneq ($(TOP_DIR), $(shell basename $$PWD))
+{{THIS_DIR}}_parent:
+	make -C $(TOP_DIR)
+endif
+
+
+# clean target for this sub-dir
+# FIXME: should probably recurse into any sub-dirs
+{{THIS_DIR}}_clean:
+	(cd {{THIS_DIR}} && rm -rf $(FILES_TO_CLEAN))
+
+
+{{#PROGRAM_RULES}}
+# *** program: {{PROGRAM_NAME}} ***
+
+SRC_{{THIS_DIR}}_{{PROGRAM_NAME}}  := {{SRC_EXPR}}
+OBJ_{{THIS_DIR}}_{{PROGRAM_NAME}}  := $(SRC_{{THIS_DIR}}_{{PROGRAM_NAME}}:%.{{SRC_EXTENSION}}=%.o)
+DEPS_{{THIS_DIR}}_{{PROGRAM_NAME}} := $(OBJ_{{THIS_DIR}}_{{PROGRAM_NAME}}:%.o=%.d)
+TGTS_$(d) := $(d)/ProjectA
+
+DEPS_{{THIS_DIR}} += $(DEPS_{{THIS_DIR}}_{{PROGRAM_NAME}})
+
+$(OBJ_{{THIS_DIR}}_{{PROGRAM_NAME}}): CF_TGT := -I{{THIS_DIR}} {{TARGET_SPECIFIC_CF}}
+
+TARGETS_TO_BUILD += {{THIS_DIR}}/{{PROGRAM_NAME}}
+{{THIS_DIR}}/{{PROGRAM_NAME}}: $(OBJ_{{THIS_DIR}}_{{PROGRAM_NAME}})
+	@$(LINK) -o $@ $(BIN_LINK_FLAGS) $^
+
+# dependencies
+{{#DEPENDS}}{{THIS_DIR}}/{{PROGRAM_NAME}}: {{DEPENDENCY}}.la
+{{/DEPENDS}}
+
+{{#IF_INSTALL}}# install into DESTDIR
+$(DESTDIR)/{{DEST_SUB}}{{PROGRAM_NAME}}: {{THIS_DIR}}/{{PROGRAM_NAME}}
+	install -t $(DESTDIR)/{{DEST_SUB}} {{THIS_DIR}}/.libs/{{PROGRAM_NAME}}
+
+TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{PROGRAM_NAME}}
+{{/IF_INSTALL}}
+{{/PROGRAM_RULES}}
+
+{{#LIBRARY_RULES}}
+# *** library: {{LIBRARY_NAME}} ***
+
+SRC_{{THIS_DIR}}_{{LIBRARY_NAME}}  := {{SRC_EXPR}}
+OBJ_{{THIS_DIR}}_{{LIBRARY_NAME}}  := $(SRC_{{THIS_DIR}}_{{LIBRARY_NAME}}:%.{{SRC_EXTENSION}}=%.o)
+OBJ_LO_{{THIS_DIR}}_{{LIBRARY_NAME}}  := $(OBJ_{{THIS_DIR}}_{{LIBRARY_NAME}}:%.o=%.lo)
+DEPS_{{THIS_DIR}}_{{LIBRARY_NAME}} := $(OBJ_{{THIS_DIR}}_{{LIBRARY_NAME}}:%.o=%.d)
+
+DEPS_{{THIS_DIR}} += $(DEPS_{{THIS_DIR}}_{{LIBRARY_NAME}})
+
+LINK_FLAGS_{{LIBRARY_NAME}} := {{BUILD_THIS_AS_SHARED}}
+
+TARGETS_TO_BUILD += {{THIS_DIR}}/{{LIBRARY_NAME}}
+{{THIS_DIR}}/{{LIBRARY_NAME}}.la: $(OBJ_LO_{{THIS_DIR}}_{{LIBRARY_NAME}})
+	@$(LINK) -o $@ $(LINK_FLAGS_{{LIBRARY_NAME}}) $^
+
+# dependencies
+{{#DEPENDS}}{{THIS_DIR}}/{{LIBRARY_NAME}}: {{DEPENDENCY}}.la
+{{/DEPENDS}}
+
+{{#IF_INSTALL}}# install into DESTDIR
+$(DESTDIR)/{{DEST_SUB}}{{LIBRARY_NAME}}.so.0: {{THIS_DIR}}/{{LIBRARY_NAME}}.la
+	install -t $(DESTDIR)/{{DEST_SUB}} {{THIS_DIR}}/.libs/{{LIBRARY_NAME}}.so.0
+
+TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{LIBRARY_NAME}}.so.0
+{{/IF_INSTALL}}
+
+
+{{/LIBRARY_RULES}}
+
+
+# include dependency files if not cleaning
+ifneq "$(MAKECMDGOALS)" "clean"
+	-include $(DEPS_{{THIS_DIR}})
+endif
+
