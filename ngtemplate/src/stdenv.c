@@ -2,7 +2,7 @@
  * Standard Environment routines for ngtemplate.  Includes Global Dictionary defaults and standard
  * modifiers
  */ 
-
+#include <stdlib.h>
 #include "internal.h"
 
 /**

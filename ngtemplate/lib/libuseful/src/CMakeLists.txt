@@ -33,17 +33,3 @@ SET(useful_LIB_SRCS
 )
 
 ADD_LIBRARY(useful ${useful_LIB_SRCS})
-
-ENABLE_TESTING()
-
-ADD_EXECUTABLE(hashtable_test platform.c list.c hashtable.c testing/hashtable_test.c)
-ADD_TEST(hashtable_0 ${EXECUTABLE_OUTPUT_PATH}/hashtable_test)
-
-ADD_EXECUTABLE(stringbuilder_test platform.c stringbuilder.c testing/stringbuilder_test.c)
-ADD_TEST(stringbuilder_0 ${EXECUTABLE_OUTPUT_PATH}/stringbuilder_test)
-
-ADD_EXECUTABLE(platform_test platform.c testing/platform_test.c)
-ADD_TEST(platform_0 ${EXECUTABLE_OUTPUT_PATH}/platform_test)
-
-ADD_EXECUTABLE(optin_test list.c hashtable.c platform.c optin.c testing/optin_test.c)
-ADD_TEST(optin_0 ${EXECUTABLE_OUTPUT_PATH}/optin_test --test=1 -fval2 3.14 -ival2 10 -strval2 "this is a string" -g)
