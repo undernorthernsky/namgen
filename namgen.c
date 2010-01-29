@@ -9,9 +9,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "ngtemplate/src/include/ngtemplate.h"
+#include "ngtemplate.h"
 
-/* sub-sections */
 #define PROGRAM_SECTION "program"
 #define LIBRARY_SECTION "library"
 
@@ -25,8 +24,6 @@
 
 #define SKIP_INSTALL "skip-install"
 #define SKIP_SHARED  "skip-shared"
-
-#define LOG_DEBUG printf
 
 static cfg_opt_t program_rules[] = {
     CFG_STR(SRC_EXPR, 0, CFGF_NONE),
@@ -72,15 +69,26 @@ static ngt_template *template = NULL;
 static char *rules_basename = "build";
 
 static char *rules_suffix = ".rules";
-static char *verbatim_suffix = ".verbatim";
+//static char *verbatim_suffix = ".verbatim";
 
 static char *top_dir = NULL;
-char * current_dir = NULL;
+static char * current_dir = NULL;
+static char * current_dir_path_from_top = NULL;
 
 
 #define SECTION_VISIBLE 1
-//const char *    tmpl_filename;
-//ngt_dictionary* dictionary;
+
+static char* get_cwd()
+{
+   int k = 512;
+   char *buff = malloc(k);
+   while (!getcwd(buff, k))
+   {
+      k *= 2;
+      buff = realloc(buff, k);
+   }
+   return buff;
+}
 
 static void do_destdir_install(cfg_t *node, ngt_dictionary *dict)
 {
@@ -91,10 +99,14 @@ static void do_destdir_install(cfg_t *node, ngt_dictionary *dict)
         if (dd)
         {
             ngt_set_string(dict, "DEST_SUB", dd);
-            LOG_DEBUG("installing into DESTDIR/%s\n", dd);
+#ifndef NDEBUG
+            printf("installing into DESTDIR/%s\n", dd);
+#endif
         } else
         {
-            LOG_DEBUG("%s\n", "installing into DESTDIR");
+#ifndef NDEBUG
+            printf("%s\n", "installing into DESTDIR");
+#endif
         }
 
         ngt_add_dictionary(dict, "IF_INSTALL", ngt_dictionary_new(), SECTION_VISIBLE);
@@ -108,7 +120,9 @@ static void do_dependencies(cfg_t *node, ngt_dictionary *dict)
     for (i=0;i<nd;i++)
     {
         const char *dep = cfg_getnstr(node, DEPENDS, i);
-        LOG_DEBUG("dependency: %s\n", dep);
+#ifndef NDEBUG
+        printf("dependency: %s\n", dep);
+#endif
         ngt_dictionary * dict_dep = ngt_dictionary_new();
         ngt_set_string(dict_dep, "DEPENDENCY", dep);
         ngt_add_dictionary(dict, "DEPENDS", dict_dep, SECTION_VISIBLE);
@@ -130,12 +144,16 @@ static void do_src_expr(cfg_t *node, ngt_dictionary *dict, const char *name)
         // $(wildcard prj_a/*.cpp)
         char buff[512];
         snprintf(buff, 512, "$(wildcard %s/*.%s)", current_dir, (src + 2));
-        LOG_DEBUG("Found wildcard 'src' expr: %s\n", buff);
+#ifndef NDEBUG
+        printf("Found wildcard 'src' expr: %s\n", buff);
+#endif
         ngt_set_string(dict, "SRC_EXPR", buff);
         ngt_set_string(dict, "SRC_EXTENSION", (src + 2));
     } else
     {
+#ifndef NDEBUG
         LOG_DEBUG("Assuming 'src' expr is a list: %s\n", src);
+#endif
         /* assume a list */
         ngt_set_string(dict, "SRC_EXPR", src);
     }
@@ -143,24 +161,21 @@ static void do_src_expr(cfg_t *node, ngt_dictionary *dict, const char *name)
 
 static void do_project_specific_stuff(cfg_t *node, ngt_dictionary *dict)
 {
-    printf(".............\n");
     char *v = cfg_getstr(node, EXT_LIBS);
     if (v)
     {
         // FIXME: not supported yet
-        LOG_DEBUG("WARN: feature %s is not yet supported\n", EXT_LIBS);
+        fprintf(stderr, "WARN: feature %s is not yet supported\n", EXT_LIBS);
     }
     v = cfg_getstr(node, COMPILE_FLAGS);
     if (v)
     {
         ngt_set_string(dict, "TARGET_SPECIFIC_CF", v);
-        LOG_DEBUG("adding %s\n", v);
     }
     v = cfg_getstr(node, LINK_FLAGS);
     if (v)
     {
         ngt_set_string(dict, "TARGET_SPECIFIC_LF", v);
-        LOG_DEBUG("more-linking %s\n", v);
     }
 }
 
@@ -169,7 +184,7 @@ static ngt_dictionary* make_program_rules_dict(cfg_t *node)
     ngt_dictionary *dict = ngt_dictionary_new();
     const char *name = cfg_title(node);
     ngt_set_string(dict, "PROGRAM_NAME", name);
-    LOG_DEBUG("Processing program '%s'\n", name);
+    printf("Processing program '%s'\n", name);
     
     /* required keys */
 
@@ -192,7 +207,7 @@ static ngt_dictionary* make_library_rules_dict(cfg_t *node)
     ngt_dictionary *dict = ngt_dictionary_new();
     const char *name = cfg_title(node);
     ngt_set_string(dict, "LIBRARY_NAME", name);
-    LOG_DEBUG("Processing library '%s'\n", name);
+    printf("Processing library '%s'\n", name);
     
     /* required keys */
 
@@ -222,7 +237,6 @@ if (kv) \
 static ngt_dictionary* make_rules_dict(const char *filename)
 {
     assert(filename);
-    LOG_DEBUG("loading rules from '%s'\n", filename);
     int num_prog, num_lib, i;
     cfg_t *cfg = cfg_init(rules, CFGF_NOCASE);
     int ret = cfg_parse(cfg, filename);
@@ -233,8 +247,8 @@ static ngt_dictionary* make_rules_dict(const char *filename)
 
     num_prog = cfg_size(cfg, PROGRAM_SECTION);
     num_lib  = cfg_size(cfg, LIBRARY_SECTION);
-    printf("[%s:%i] file '%s' contains %i program rule(s) and %i library rule(s)\n",
-            __FILE__, __LINE__, filename, num_prog, num_lib);
+    printf("File '%s/%s' contains %i program rule(s) and %i library rule(s)\n",
+            current_dir, filename, num_prog, num_lib);
 
     ngt_dictionary *dict = ngt_dictionary_new();
     assert(dict);
@@ -253,6 +267,7 @@ static ngt_dictionary* make_rules_dict(const char *filename)
         ngt_dictionary *dict_prog = make_program_rules_dict(cfg_prog);
         assert(dict_prog);
         ngt_set_string(dict_prog, "THIS_DIR", current_dir);
+        ngt_set_string(dict_prog, "PATH_FROM_TOP", current_dir_path_from_top);
         ngt_add_dictionary(dict, "PROGRAM_RULES", dict_prog, SECTION_VISIBLE);
     }
     for (i=0;i<num_lib;i++)
@@ -262,6 +277,7 @@ static ngt_dictionary* make_rules_dict(const char *filename)
         ngt_dictionary *dict_prog = make_library_rules_dict(cfg_prog);
         assert(dict_prog);
         ngt_set_string(dict_prog, "THIS_DIR", current_dir);
+        ngt_set_string(dict_prog, "PATH_FROM_TOP", current_dir_path_from_top);
         ngt_add_dictionary(dict, "LIBRARY_RULES", dict_prog, SECTION_VISIBLE);
     }
 
@@ -270,11 +286,26 @@ static ngt_dictionary* make_rules_dict(const char *filename)
     return dict;
 }
 
+char * get_subpath(char * from, char * to)
+{
+   char *f, *t;
+   f = from;
+   t = to;
+   while (*f == *t)
+   {
+      f++;
+      t++;
+   }
+   t++;
+   return t;
+}
 
 int process_directory(char * name)
 {
+    int res = 0; 
     char *output_str = NULL;
     ngt_dictionary *dict = NULL;
+    char *cwd = NULL;
 
     current_dir = name;
     size_t _max = strlen(rules_basename) + 9 + 1;
@@ -282,34 +313,51 @@ int process_directory(char * name)
     snprintf(fb, _max, "%s%s", rules_basename, rules_suffix);
     if (access(fb, R_OK))
     {
-        LOG_DEBUG("Directory '%s' does not contain '%s'\n", name, fb);
+        res = 1;
         goto pd_cleanup;
     }
+    cwd = get_cwd();
+    current_dir_path_from_top = get_subpath(top_dir, cwd);
 
     dict = make_rules_dict(fb);
     ngt_set_string(dict, "THIS_DIR", name);
+    ngt_set_string(dict, "PATH_FROM_TOP", current_dir_path_from_top);
 
     ngt_set_dictionary(template, dict);
     ngt_expand(template, &output_str); 
     int fd = open("makefile", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-    write(fd, output_str, strlen(output_str));
+    int wl = strlen(output_str);
+    if (write(fd, output_str, wl) != wl)
+    {
+       fprintf(stderr, "Error while writing 'makefile'\n");
+       res = 1;
+    }
     close(fd);
+    printf("%s\n", "----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----");
 
 pd_cleanup:
+    if (cwd)
+       free(cwd);
     if (dict)
         ngt_dictionary_destroy(dict);
     if (output_str)
         free(output_str);
     if (fb)
         free(fb);
+    return res;
 }
 
-void iterate_directories(char * dirpath)
+int iterate_directories(char * dirpath)
 {
     char *old_pwd = NULL;
-
+    int res = 0;
     old_pwd = get_current_dir_name();
-    chdir(dirpath);
+    if (chdir(dirpath))
+    {
+       fprintf(stderr, "Error calling chdir(%s)\n", dirpath);
+       res = 1;
+       goto id_oops;
+    }
     process_directory(dirpath);
 
     DIR *dir;
@@ -318,7 +366,8 @@ void iterate_directories(char * dirpath)
     if (dir == NULL)
     {
         fprintf(stderr, "Failed to opendir '%s'\n", dirpath);
-        return;
+        res = 1;
+        goto id_cleanup;
     }
     while ((entry = readdir(dir)))
     {
@@ -330,41 +379,27 @@ void iterate_directories(char * dirpath)
         }
     }
 
+id_cleanup:
     closedir(dir);
-    chdir(old_pwd);
+    if (chdir(old_pwd))
+    {
+       fprintf(stderr, "Failed to switch back to previous directory?\n");
+    }
+id_oops:
     free(old_pwd);
+    return res;
 }
 
 int main(int argc, char *argv[])
 {
-    char* output;
-
     template = ngt_new();
-    top_dir = argv[1];
-    ngt_load_from_filename(template, argv[2]);
 
-    iterate_directories(argv[1]);
+    top_dir = getenv("PWD"); 
+    ngt_load_from_filename(template, argv[1]);
 
-    /*
-    ngt_dictionary* dictionary = ngt_dictionary_new();
+    iterate_directories(top_dir);
 
-    ngt_set_string(dictionary, "TOP-DIR", "Beer");
-
-    ngt_dictionary *prog_rules_dict = ngt_dictionary_new();
-    ngt_set_string(prog_rules_dict, "PROGRAM_NAME", "FooBar");
-
-    ngt_add_dictionary(dictionary, "PROGRAM_RULES", prog_rules_dict, 1);
-
-
-
-    ngt_set_dictionary(template, dictionary);
-    ngt_expand(template, &output);
-
-    fprintf(stdout, "%s\n", output);
-
-    free(output);
-    ngt_dictionary_destroy(dictionary);
-    */
     if (template)
         ngt_destroy(template);
+    return 0;
 }
