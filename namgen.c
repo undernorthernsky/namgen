@@ -6,9 +6,12 @@
 #include <string.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <stdio.h>
+#include <getopt.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "utlist.h"
 #include "ngtemplate.h"
 
 #define PROGRAM_SECTION "program"
@@ -68,12 +71,14 @@ static cfg_opt_t rules[] = {
 static ngt_template *template = NULL;
 static char *rules_basename = "build";
 
+static char *template_file = COMPILED_IN_TEMPLATE_FILE; 
+
 static char *rules_suffix = ".rules";
 //static char *verbatim_suffix = ".verbatim";
 
 static char *top_dir = NULL;
-static char * current_dir = NULL;
-static char * current_dir_path_from_top = NULL;
+static char *current_dir = NULL;
+static char *current_dir_path_from_top = NULL;
 
 
 #define SECTION_VISIBLE 1
@@ -390,14 +395,72 @@ id_oops:
     return res;
 }
 
+void usage(const char * prg)
+{
+    printf("USAGE: %s [flags]\n", prg);
+}
+
+struct charp_list_entry;
+typedef struct charp_list_entry {
+    char *dir;
+    struct charp_list_entry *next;
+} charp_list_entry;
+
+static charp_list_entry* make_list_entry(char *dir)
+{
+    charp_list_entry *e = malloc(sizeof(charp_list_entry));
+    e->dir = dir;
+    e->next = NULL;
+    return e;
+}
+
 int main(int argc, char *argv[])
 {
+    int c, opt_idx;
+    static struct option long_opts[] = {
+        {"add-dir", 1, 0, 'a'},
+        {0, 0, 0, 0}
+    };
+    charp_list_entry *additional_dir_list_head = NULL; 
+
+    while ((c = getopt_long(argc, argv, "a:h?", long_opts, &opt_idx)) != -1) {
+        switch(c) {
+            case 'a':
+                LL_PREPEND(additional_dir_list_head, make_list_entry(optarg));
+                break;
+            case 'h':
+            case '?':
+                usage(argv[0]);
+                exit(0);
+                break;
+            default:
+                usage(argv[1]);
+                exit(1);
+        }
+    };
+
     template = ngt_new();
 
     top_dir = getenv("PWD"); 
-    ngt_load_from_filename(template, argv[1]);
+    ngt_load_from_filename(template, template_file);
 
     iterate_directories(top_dir);
+    if (additional_dir_list_head)
+    {
+        charp_list_entry *e, *n;
+        LL_FOREACH(additional_dir_list_head, e)
+        {
+            iterate_directories(e->dir);
+        }
+
+        // cleanup
+        e = additional_dir_list_head;
+        while (e) {
+            n = e->next;
+            free(e);
+            e = n;
+        }
+    }
 
     if (template)
         ngt_destroy(template);
