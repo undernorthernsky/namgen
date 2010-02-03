@@ -30,6 +30,7 @@ stringbuilder* sb_new_with_size(int size)   {
     sb->cstr = (char*)malloc(size);
     sb->pos = 0;
     sb->reallocs = 0;
+    memset(sb->cstr, 0, size);
     
     return sb;
 }

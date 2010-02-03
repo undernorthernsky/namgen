@@ -4,7 +4,7 @@ TMPL := $(shell pwd)/sub_make.tmpl
 CC      := gcc
 INC     := -Iinclude
 FLAGS   := -Wall -pedantic --std=c99 -Os -ggdb
-DEFS    := -DNDEBUG -DCOMPILED_IN_TEMPLATE_FILE=\"$(TMPL)\"
+DEFS    := -DDEBUG -DCOMPILED_IN_TEMPLATE_FILE=\"$(TMPL)\"
 CFLAGS  := $(INC) $(FLAGS) $(DEFS)
 LDFLAGS := -Llib -lconfuse -lngtemplate -luseful
 

@@ -13,6 +13,7 @@
 
 #include "utlist.h"
 #include "ngtemplate.h"
+#include "stringbuilder.h"
 
 #define PROGRAM_SECTION "program"
 #define LIBRARY_SECTION "library"
@@ -27,6 +28,8 @@
 
 #define SKIP_INSTALL "skip-install"
 #define SKIP_SHARED  "skip-shared"
+
+#define LOG_DEBUG printf
 
 static cfg_opt_t program_rules[] = {
     CFG_STR(SRC_EXPR, 0, CFGF_NONE),
@@ -134,6 +137,47 @@ static void do_dependencies(cfg_t *node, ngt_dictionary *dict)
     }
 }
 
+static stringbuilder* split_list_into_sb(char *src)
+{
+   stringbuilder *sb = NULL;
+   char *start, *next, *last;
+   int len;
+
+   start = src;
+   last = src + strlen(src) - 1;
+
+#ifndef NDEBUG
+   printf("input [%s]\n", src);
+#endif
+   if (start > last)
+   {
+      fprintf(stderr, "%s\n", "WARN: Empty 'src' input");
+      return NULL;
+   }
+   
+   sb = sb_new();
+   if (start == last)
+   {
+      sb_append_str(sb, current_dir_path_from_top);
+      sb_append_ch(sb, '/');
+      sb_append_strn(sb, start, 1);
+      sb_append_ch(sb, ' ');
+   }
+
+   while (start < last)
+   {
+      for (; *start == ' '; start++);
+      for (next = start + 1; (*next != ' ') && (next <= last); next++);
+      len = next - start;
+      sb_append_str(sb, current_dir_path_from_top);
+      sb_append_str(sb, "/");
+      sb_append_strn(sb, start, len);
+      sb_append_str(sb, " ");
+      start = next;
+   }
+   return sb;
+}
+
 static void do_src_expr(cfg_t *node, ngt_dictionary *dict, const char *name)
 {
     char *src = cfg_getstr(node, SRC_EXPR);
@@ -148,7 +192,7 @@ static void do_src_expr(cfg_t *node, ngt_dictionary *dict, const char *name)
         /* wildcard */
         // $(wildcard prj_a/*.cpp)
         char buff[512];
-        snprintf(buff, 512, "$(wildcard %s/*.%s)", current_dir, (src + 2));
+        snprintf(buff, 512, "$(wildcard %s/*.%s)", current_dir_path_from_top, (src + 2));
 #ifndef NDEBUG
         printf("Found wildcard 'src' expr: %s\n", buff);
 #endif
@@ -156,11 +200,39 @@ static void do_src_expr(cfg_t *node, ngt_dictionary *dict, const char *name)
         ngt_set_string(dict, "SRC_EXTENSION", (src + 2));
     } else
     {
+       char *buff = NULL;
+       if (src[0] == '!')
+       {
 #ifndef NDEBUG
-        LOG_DEBUG("Assuming 'src' expr is a list: %s\n", src);
+          LOG_DEBUG("Assuming 'src' expr is to be copied verbatim: %s\n", src);
 #endif
-        /* assume a list */
-        ngt_set_string(dict, "SRC_EXPR", src);
+          /* assume a list */
+          ngt_set_string(dict, "SRC_EXPR", src + 1);
+       } else
+       {
+#ifndef NDEBUG
+          LOG_DEBUG("Assuming files in 'src' expr are to be adjusted to %s\n", current_dir_path_from_top); 
+#endif
+          stringbuilder *sb = split_list_into_sb(src);
+          if (sb)
+          {
+            printf("output [%s]\n", sb_cstring(sb));
+            ngt_set_string(dict, "SRC_EXPR", sb_cstring(sb));
+            sb_destroy(sb, 1);
+          }
+       }
+       if (strstr(src, ".cpp"))
+          buff = "cpp";
+       else if (strstr(src, ".cxx"))
+          buff = "cxx";
+       else if (strstr(src, ".c"))
+          buff = "c";
+#ifndef NDEBUG
+       printf("Guessed src extension: %s\n", buff);
+#endif
+       if (!buff)
+          fprintf(stderr, "WARN: no src extension detected in input: %s\n", src);
+       ngt_set_string(dict, "SRC_EXTENSION", buff);
     }
 }
 
@@ -253,7 +325,7 @@ static ngt_dictionary* make_rules_dict(const char *filename)
     num_prog = cfg_size(cfg, PROGRAM_SECTION);
     num_lib  = cfg_size(cfg, LIBRARY_SECTION);
     printf("File '%s/%s' contains %i program rule(s) and %i library rule(s)\n",
-            current_dir, filename, num_prog, num_lib);
+            current_dir_path_from_top, filename, num_prog, num_lib);
 
     ngt_dictionary *dict = ngt_dictionary_new();
     assert(dict);
@@ -307,6 +379,9 @@ char * get_subpath(char * from, char * to)
 
 int process_directory(char * name)
 {
+#ifndef NDEBUG
+   printf("processing directory: %s\n", name);
+#endif
     int res = 0; 
     char *output_str = NULL;
     ngt_dictionary *dict = NULL;
@@ -323,6 +398,9 @@ int process_directory(char * name)
     }
     cwd = get_cwd();
     current_dir_path_from_top = get_subpath(top_dir, cwd);
+#ifndef NDEBUG
+   printf("cwd [%s], pft [%s]\n", cwd, current_dir_path_from_top);
+#endif
 
     dict = make_rules_dict(fb);
     ngt_set_string(dict, "THIS_DIR", name);
