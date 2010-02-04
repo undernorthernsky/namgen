@@ -13,7 +13,7 @@
 
 #include "utlist.h"
 #include "ngtemplate.h"
-//#include "stringbuilder.h"
+#include "stringbuilder.h"
 
 #define PROGRAM_SECTION "program"
 #define LIBRARY_SECTION "library"
@@ -146,7 +146,6 @@ static void do_dependencies(cfg_t *node, ngt_dictionary *dict)
     }
 }
 
-#if 0
 static stringbuilder* split_list_into_sb(char *src)
 {
    stringbuilder *sb = NULL;
@@ -187,7 +186,6 @@ static stringbuilder* split_list_into_sb(char *src)
    }
    return sb;
 }
-#endif
 
 static void do_src_expr(cfg_t *node, ngt_dictionary *dict, const char *name)
 {
@@ -201,7 +199,6 @@ static void do_src_expr(cfg_t *node, ngt_dictionary *dict, const char *name)
     if (!strncmp(src, "*.", 2))
     {
         /* wildcard */
-        // $(wildcard prj_a/*.cpp)
         char buff[512];
         snprintf(buff, 512, "$(wildcard %s/*.%s)", current_dir_path_from_top, (src + 2));
 #ifndef NDEBUG
@@ -224,14 +221,13 @@ static void do_src_expr(cfg_t *node, ngt_dictionary *dict, const char *name)
 #ifndef NDEBUG
           LOG_DEBUG("Assuming files in 'src' expr are to be adjusted to %s\n", current_dir_path_from_top); 
 #endif
-          /*
           stringbuilder *sb = split_list_into_sb(src);
           if (sb)
           {
             printf("output [%s]\n", sb_cstring(sb));
             ngt_set_string(dict, "SRC_EXPR", sb_cstring(sb));
             sb_destroy(sb, 1);
-          }*/
+          }
        }
        if (strstr(src, ".cpp"))
           buff = "cpp";
@@ -379,8 +375,6 @@ static char path_buf[1024];
 
 char* get_path_from_top(char *top, char *to)
 {
-    printf("%s -> %s\n", top, to);
-
     // find common part
     char *f = top;
     char *t = to;
@@ -400,7 +394,6 @@ char* get_path_from_top(char *top, char *to)
         while (*t != '/')
             t--;
         t++;
-        /*
         stringbuilder *sb = sb_new();
         int from_remains = 0;
         while (*f != 0)
@@ -416,7 +409,6 @@ char* get_path_from_top(char *top, char *to)
         memset(path_buf, 0, 1024);
         strncpy(path_buf, sb_cstring(sb), 1023);
         sb_destroy(sb, 1);
-        */
         return path_buf;
     }
 }
@@ -457,7 +449,7 @@ int process_directory(char * name)
     }
     cwd = get_cwd();
     current_dir_path_from_top = get_path_from_top(top_dir, cwd);
-    //remember_entries(current_dir, current_dir_path_from_top);
+    remember_entries(current_dir, current_dir_path_from_top);
 #ifndef NDEBUG
    printf("cwd [%s], pft [%s]\n", cwd, current_dir_path_from_top);
 #endif
@@ -555,7 +547,6 @@ static charp_list_entry* make_list_entry(char *dir)
     return e;
 }
 
-#if 0
 static void create_master_include(void)
 {
     if (chdir(top_dir))
@@ -584,7 +575,6 @@ static void create_master_include(void)
 
     fclose(f);
 }
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -634,7 +624,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    //create_master_include();
+    create_master_include();
 
     sub_entry *entry = sub_list_head;
     sub_entry *next;
