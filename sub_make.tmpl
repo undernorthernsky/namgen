@@ -1,3 +1,5 @@
+# This file was generated from 'build.rules' using namgen; do not edit!
+
 # the directory with the top-level makefile
 TOP_DIR := {{TOP_DIR}}
 
@@ -64,7 +66,7 @@ DEPS_{{THIS_DIR}} += $(DEPS_{{THIS_DIR}}_{{LIBRARY_NAME}})
 
 # when generating .d files and compiling of this program set CF_TGT (compile flags, target)
 # to allow program-specific flags; also add -I. when someone uses <x.h> for local files
-$(OBJ_{{THIS_DIR}}_{{LIBRARY_NAME}}) $(DEPS_{{THIS_DIR}}_{{LIBRARY_NAME}}): CF_TGT := -I{{PATH_FROM_TOP}} {{TARGET_SPECIFIC_CF}}
+$(OBJ_{{THIS_DIR}}_{{LIBRARY_NAME}}) $(OBJ_LO_{{THIS_DIR}}_{{LIBRARY_NAME}}) $(DEPS_{{THIS_DIR}}_{{LIBRARY_NAME}}): CF_TGT := -I{{PATH_FROM_TOP}} {{TARGET_SPECIFIC_CF}}
 
 # this will contain --rpath ... (which determines if the shared version is built)
 # 'skip-shared = true' disables shared building on a per-library base
