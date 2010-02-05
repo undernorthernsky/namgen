@@ -1,0 +1,8 @@
+Creates makefiles from build descriptors for non-recursive make.
+
+You should start it in the source root directory, all subdirectories
+will be searched for files named 'build.rules'.
+
+Flags are:
+    -a directory : add a non-subdir directory to the search list.
+    -H           : show full documentation

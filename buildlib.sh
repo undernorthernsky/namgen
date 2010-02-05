@@ -19,3 +19,24 @@ cp libngtemplate.a $T/lib
 make clean
 rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
 cd $T
+
+mkdir include/zzip
+
+if [ ! -e zziplib-0.13.58.tar.bz2 ]; then
+    wget http://sourceforge.net/projects/zziplib/files/zziplib13/0.13.58/zziplib-0.13.58.tar.bz2/download
+fi
+
+if [ ! -d zziplib-0.13.58 ]; then
+    tar jxf zziplib-0.13.58.tar.bz2 
+fi
+
+D=zziplib-0.13.58 
+
+(cd $D && ./configure && make)
+
+cp $D/zzip/zzip.h include
+cp $D/zzip/types.h $D/zzip/conf.h include/zzip
+cp $D/Linux_*/zzip/_config.h include/zzip
+cp $D/Linux_*/zzip/.libs/libzzip.a lib
+
+rm -rf $D

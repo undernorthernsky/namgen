@@ -31,12 +31,13 @@ DEPS_{{THIS_DIR}} += $(DEPS_{{THIS_DIR}}_{{PROGRAM_NAME}})
 # when generating .d files and compiling of this program set CF_TGT (compile flags, target)
 # to allow program-specific flags; also add -I. when someone uses <x.h> for local files
 $(OBJ_{{THIS_DIR}}_{{PROGRAM_NAME}}) $(DEPS_{{THIS_DIR}}_{{PROGRAM_NAME}}): CF_TGT := -I{{PATH_FROM_TOP}} {{TARGET_SPECIFIC_CF}}
+{{PATH_FROM_TOP}}/{{PROGRAM_NAME}}$(EXE_EXT): LF_TGT := {{TARGET_SPECIFIC_LF}}
 
 # add this program to the global 'make build' goals
 TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{PROGRAM_NAME}}$(EXE_EXT)
 # link the program from the object files
 {{PATH_FROM_TOP}}/{{PROGRAM_NAME}}$(EXE_EXT): $(OBJ_{{THIS_DIR}}_{{PROGRAM_NAME}})
-	@$(LINK_CXX) -o $@ $(BIN_LINK_FLAGS) $^
+	@$(LINK_CXX) -o $@ $(BIN_LINK_FLAGS) $(LF_TGT) $^
 
 # dependencies of this program
 # this statement causes linking with the requested libaries
@@ -67,6 +68,7 @@ DEPS_{{THIS_DIR}} += $(DEPS_{{THIS_DIR}}_{{LIBRARY_NAME}})
 # when generating .d files and compiling of this program set CF_TGT (compile flags, target)
 # to allow program-specific flags; also add -I. when someone uses <x.h> for local files
 $(OBJ_{{THIS_DIR}}_{{LIBRARY_NAME}}) $(OBJ_LO_{{THIS_DIR}}_{{LIBRARY_NAME}}) $(DEPS_{{THIS_DIR}}_{{LIBRARY_NAME}}): CF_TGT := -I{{PATH_FROM_TOP}} {{TARGET_SPECIFIC_CF}}
+{{PATH_FROM_TOP}}/{{LIBRARY_NAME}}.la: LF_TGT := {{TARGET_SPECIFIC_LF}}
 
 # this will contain --rpath ... (which determines if the shared version is built)
 # 'skip-shared = true' disables shared building on a per-library base
@@ -75,10 +77,10 @@ LINK_FLAGS_{{LIBRARY_NAME}} := {{BUILD_THIS_AS_SHARED}}
 
 TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{LIBRARY_NAME}}.la
 {{PATH_FROM_TOP}}/{{LIBRARY_NAME}}.la: $(OBJ_LO_{{THIS_DIR}}_{{LIBRARY_NAME}})
-	@$(LINK_CXX) -o $@ $(LINK_FLAGS_{{LIBRARY_NAME}}) $^
+	@$(LINK_CXX) -o $@ $(LINK_FLAGS_{{LIBRARY_NAME}}) $(LF_TGT) $^
 
 # dependencies
-{{#DEPENDS}}{{THIS_DIR}}/{{LIBRARY_NAME}}: {{DEPENDENCY}}.la
+{{#DEPENDS}}{{THIS_DIR}}/{{LIBRARY_NAME}}.la: {{DEPENDENCY}}.la
 {{/DEPENDS}}
 
 # FIXME: handle .dll for WIN32, what about static libs? never installed?

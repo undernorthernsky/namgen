@@ -8,9 +8,11 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <getopt.h>
+#include <libgen.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "myio.h"
 #include "utlist.h"
 #include "ngtemplate.h"
 #include "stringbuilder.h"
@@ -107,7 +109,7 @@ static char* get_cwd()
    return buff;
 }
 
-static void do_destdir_install(cfg_t *node, ngt_dictionary *dict)
+static void do_destdir_install(cfg_t *node, ngt_dictionary *dict, int dest_default)
 {
     /* unless 'skip-install' is true for this target */
     if (!cfg_getbool(node, SKIP_INSTALL))
@@ -121,9 +123,17 @@ static void do_destdir_install(cfg_t *node, ngt_dictionary *dict)
 #endif
         } else
         {
+            if (dest_default == 1)
+            {
+                ngt_set_string(dict, "DEST_SUB", "bin/");
+            } else if (dest_default == 2)
+            {
+                ngt_set_string(dict, "DEST_SUB", "lib/");
+            } else {
 #ifndef NDEBUG
-            printf("%s\n", "installing into DESTDIR");
+                printf("%s\n", "installing into DESTDIR");
 #endif
+            }
         }
 
         ngt_add_dictionary(dict, "IF_INSTALL", ngt_dictionary_new(), SECTION_VISIBLE);
@@ -281,7 +291,7 @@ static ngt_dictionary* make_program_rules_dict(cfg_t *node)
 
     do_dependencies(node, dict);
     
-    do_destdir_install(node, dict);
+    do_destdir_install(node, dict, 1);
 
     return dict;
 }
@@ -309,7 +319,7 @@ static ngt_dictionary* make_library_rules_dict(cfg_t *node)
 
     do_dependencies(node, dict);
     
-    do_destdir_install(node, dict);
+    do_destdir_install(node, dict, 2);
 
     return dict;
 }
@@ -373,7 +383,7 @@ static ngt_dictionary* make_rules_dict(const char *filename)
 
 static char path_buf[1024];
 
-char* get_path_from_top(char *top, char *to)
+static char* get_path_from_top(char *top, char *to)
 {
     // find common part
     char *f = top;
@@ -413,7 +423,7 @@ char* get_path_from_top(char *top, char *to)
     }
 }
 
-void remember_entries(char * name, char * dir)
+static void remember_entries(char * name, char * dir)
 {
     sub_entry *e = malloc(sizeof(sub_entry));
     char *tmp = malloc(strlen(name) + 7);
@@ -425,7 +435,7 @@ void remember_entries(char * name, char * dir)
     DL_APPEND(sub_list_head, e);
 }
 
-int process_directory(char * name)
+static int process_directory(char * name)
 {
 #ifndef NDEBUG
    printf("processing directory: %s\n", name);
@@ -485,7 +495,7 @@ pd_cleanup:
     return res;
 }
 
-int iterate_directories(char * dirpath)
+static int iterate_directories(char * dirpath)
 {
     char *old_pwd = NULL;
     int res = 0;
@@ -528,9 +538,35 @@ id_oops:
     return res;
 }
 
-void usage(const char * prg)
+static void usage(const char * prg)
 {
-    printf("USAGE: %s [flags]\n", prg);
+    char *_prg = strdup(prg);
+    char *name = basename(_prg);
+    printf("USAGE: %s [flags]\n", name);
+    free(_prg);
+    name = load_file("usage.txt");
+    if (name)
+    {
+        printf("%s\n", name);
+        free(name);
+    } else
+    {
+        fprintf(stderr, "Failed to load usage.txt\n");
+    }
+}
+
+static void show_documentation(void)
+{
+    char *doc = load_file("documentation.txt");
+    if (doc)
+    {
+        printf("%s\n", doc);
+        free(doc);
+    } else
+    {
+        fprintf(stderr, "Failed to load documentation.txt\n");
+    }
+
 }
 
 struct charp_list_entry;
@@ -580,12 +616,19 @@ int main(int argc, char *argv[])
 {
     int c, opt_idx;
     static struct option long_opts[] = {
-        {"add-dir", 1, 0, 'a'},
+        {"add-dir",  1, 0, 'a'},
+        {"help",     0, 0, 'h'},
+        {"show-doc", 0, 0, 'H'},
         {0, 0, 0, 0}
     };
     charp_list_entry *additional_dir_list_head = NULL; 
+    if (io_init(argv[0]))
+    {
+        fprintf(stderr, "Error loading IO subsystem for %s\n", argv[0]);
+        exit(1);
+    }
 
-    while ((c = getopt_long(argc, argv, "a:h?", long_opts, &opt_idx)) != -1) {
+    while ((c = getopt_long(argc, argv, "a:h?H", long_opts, &opt_idx)) != -1) {
         switch(c) {
             case 'a':
                 LL_PREPEND(additional_dir_list_head, make_list_entry(optarg));
@@ -593,6 +636,10 @@ int main(int argc, char *argv[])
             case 'h':
             case '?':
                 usage(argv[0]);
+                exit(0);
+                break;
+            case 'H':
+                show_documentation();
                 exit(0);
                 break;
             default:
@@ -604,7 +651,11 @@ int main(int argc, char *argv[])
     template = ngt_new();
 
     top_dir = getenv("PWD"); 
-    ngt_load_from_filename(template, template_file);
+    if (load_template(template, template_file))
+    {
+        fprintf(stderr, "Error loading template %s\n", template_file);
+        goto work_skipped;
+    }
 
     iterate_directories(top_dir);
     if (additional_dir_list_head)
@@ -637,7 +688,10 @@ int main(int argc, char *argv[])
         entry = next;
     }
 
+work_skipped:
     if (template)
         ngt_destroy(template);
+
+    io_quit();
     return 0;
 }

@@ -1,0 +1,30 @@
+= Purpose of this program =
+
+Create makefiles for a non-recursive make setup from simple descriptor
+files.
+
+See:
+    Recursive Make Considered Harmful
+    http://miller.emu.id.au/pmiller/books/rmch/
+
+    Implementing non-recursive make
+    http://www.xs4all.nl/~evbergen/nonrecursive-make.html
+
+
+= Descriptor language =
+
+Example:
+
+program "ProjectA" {
+    src = *.cpp
+    depends = { prj_b/libprjb , prj_a/prj_x/libblub }
+    flags = "-I prj_a/prj_x"
+    ld-flags = -static
+    libs = -lmysql
+    dest-dir = "bin/"
+}
+
+library "libprjb" {
+    src = *.cxx
+    dest-dir = "lib/"
+}

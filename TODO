@@ -1,0 +1,15 @@
+* library filename
+  * dll, so, so.X.Y
+  * library "foo" -> libfoo.so | foo.dll
+
+* inter-module dependency resolution
+  * just 'depends = { foo, bar }' instead of pathes
+  * add -Ixxx for depending module
+
+* verbatim make fragment support
+
+* rethink 'ld-flags' vs 'libs'
+
+* cleanup of module/target specific flag handling?
+
+* custom production (sed xxx.cpp > yyy.cpp)
