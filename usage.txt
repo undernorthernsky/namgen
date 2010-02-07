@@ -4,5 +4,6 @@ You should start it in the source root directory, all subdirectories
 will be searched for files named 'build.rules'.
 
 Flags are:
-    -a directory : add a non-subdir directory to the search list.
+    -a directory : add a non-subdir directory to the search list
     -H           : show full documentation
+    -p           : print parsed rules information to stdout and exit

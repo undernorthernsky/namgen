@@ -1,5 +1,5 @@
-USE_ZIP := 0
-DEBUG := 1
+USE_ZIP := 1
+DEBUG := 0
 TEMPLATES := sub_make.tmpl
 
 ifdef USE_ZIP
@@ -56,4 +56,4 @@ lib/libngtemplate.a:
 	./buildlib.sh
 
 clean:
-	rm -f namgen namgen.bin *.o lex.yy.c y.tab.c y.tab.h
+	rm -f namgen namgen.bin *.o lex.yy.c y.tab.c y.tab.h data.zip

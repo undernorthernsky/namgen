@@ -11,20 +11,74 @@ See:
     http://www.xs4all.nl/~evbergen/nonrecursive-make.html
 
 
+This program assumes that you have your code distributed into a tree
+of directories and that the top-level directory does not contain any
+source code files.
+
+TOP-DIR/
+      makefile [master-makefile]
+      foo/
+         build.rules
+         foo1.cpp foo2.cpp
+      bla/
+         build.rules
+         bla1.cpp bla2.cpp
+         blub/
+            build.rules
+            blub1.cpp blub2.cpp
+
+When started in TOP-DIR this program will recurse through all
+sub-directories and generate a makefile whenever it finds a build
+descriptor file (build.rules).
+
+Furthermore in the top-level directory the file 'makefile.dirs' will
+be created; the purpose is to include all sub-makefiles.
+
+If the master-makefile does not exist, it will be created as well.
+NOTE: not implemented
+
+
 = Descriptor language =
 
-Example:
+The file 'build.rules' can contain an arbirtray number of target
+descriptions; at this time this can be either a program or a library.
 
+-- Example: build.rules --
 program "ProjectA" {
     src = *.cpp
-    depends = { prj_b/libprjb , prj_a/prj_x/libblub }
-    flags = "-I prj_a/prj_x"
-    ld-flags = -static
-    libs = -lmysql
-    dest-dir = "bin/"
+    depends = libprjb
+    libs = -lz
 }
 
 library "libprjb" {
     src = *.cxx
-    dest-dir = "lib/"
+    flags = -DUSE_FEATURE_X
 }
+-- end of build.rules --
+
+
+* Which source code files [required]
+
+src = *.cpp
+src = foo.cpp bar.cpp blub.cpp
+
+* Depend on other targets [optional]
+
+depends = foo bar baz
+
+* Additional compiler/linker flags [optional]
+
+flags = -I/opt/something/else -D_GNU_SOURCE
+ld-flags = -Wl,-Bsymbolic
+
+* External libraries [optional]
+
+libs = -lreadline -lz
+
+* Other switches [optional]
+
+Do not install into DESTDIR:
+skip-install = true
+
+Only build a static library version:
+skip-shared = true
