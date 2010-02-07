@@ -100,8 +100,13 @@ char* sb_make_cstring(stringbuilder* sb)    {
     }
     
     out = (char*)malloc(sb->pos + 1);
-    strcpy(out, sb_cstring(sb));
+    memset(out, 0, sb->pos + 1);
+    memcpy(out, sb_cstring(sb), sb->pos);
     
     return out;
 }
 
+void sb_reset(stringbuilder *sb) {
+   memset(sb->cstr, 0, sb->size);
+   sb->pos = 0;
+}

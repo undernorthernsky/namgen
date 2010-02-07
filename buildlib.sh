@@ -20,6 +20,8 @@ make clean
 rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
 cd $T
 
+if [ -e lib/libzzip.a ]; then exit 0; fi
+
 mkdir include/zzip
 
 if [ ! -e zziplib-0.13.58.tar.bz2 ]; then

@@ -52,7 +52,7 @@ char* sb_make_cstring(stringbuilder* sb);
 /**
  * Resets the stringbuilder to empty
  */
-#define sb_reset(sb) ((sb)->pos = 0)
+void sb_reset(stringbuilder *sb);
 
 #define sb_append_ch(sb, ch)    {                                                       \
         if ((sb)->pos == (sb)->size - 1 )   {                                           \
