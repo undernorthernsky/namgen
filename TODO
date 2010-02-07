@@ -2,6 +2,10 @@
   * dll, so, so.X.Y
   * library "foo" -> libfoo.so | foo.dll
 
+* installing of binaries
+  * if -static then the actual target is x/y and not x/.libs/y
+  * win32 not tested
+
 * inter-module dependency resolution
   * just 'depends = { foo, bar }' instead of pathes
   * add -Ixxx for depending module
@@ -13,3 +17,5 @@
 * cleanup of module/target specific flag handling?
 
 * custom production (sed xxx.cpp > yyy.cpp)
+
+* replace libconfuse with a lex/yacc parser
