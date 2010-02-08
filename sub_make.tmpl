@@ -17,8 +17,8 @@ endif
 # FIXME: should probably recurse into any sub-dirs
 {{THIS_DIR}}_clean:
 	(cd {{PATH_FROM_TOP}} && rm -rf $(FILES_TO_CLEAN))
-{{#PROGRAM_RULES}}
 {{VERBATIM}}
+{{#PROGRAM_RULES}}
 # *** program: {{PROGRAM_NAME}} ***
 # all src files that are used for this program
 SRC_{{THIS_DIR}}_{{PROGRAM_NAME}}  := {{SRC_EXPR}}

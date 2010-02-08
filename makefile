@@ -1,5 +1,5 @@
 USE_ZIP := 1
-DEBUG := 0
+DEBUG := 1
 TEMPLATES := sub_make.tmpl
 
 ifdef USE_ZIP
