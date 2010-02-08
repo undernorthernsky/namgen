@@ -55,9 +55,9 @@ char* sb_make_cstring(stringbuilder* sb);
 void sb_reset(stringbuilder *sb);
 
 #define sb_append_ch(sb, ch)    {                                                       \
-        if ((sb)->pos == (sb)->size - 1 )   {                                           \
+        if ((sb)->size - (sb)->pos < 2 )   {                                            \
             (sb)->reallocs++;                                                           \
-            (sb)->size = (sb)->size + ((sb)->size >> 2)+ 1;                             \
+            (sb)->size = (sb)->size + ((sb)->size >> 2)+ 2;                             \
             (sb)->cstr = (char*)realloc((sb)->cstr, (sb)->size );                       \
         }                                                                               \
         (sb)->cstr[(sb)->pos++] = ch;                                                   \

@@ -93,7 +93,7 @@ def_statements:
 def_statement:
                  src_statement ;
                  | depends_statement ;
-                 | destdir_statement ;
+                 | destdir_statement { current_target->dest_sub_path = strdup($1); }
                  | flags_statement ; 
                  | ld_flags_statement ;
                  | libs_statement ;

@@ -29,7 +29,8 @@ LDFLAGS := -Llib -lngtemplate -luseful -ll $(ZIP_LIBS)
 
 all: $(TARGET)
 
-NAMGEN_SRC = namgen.c myio.c target.c src_gatherer.c template.c dirscanner.c bt.c lex.yy.c y.tab.c
+NAMGEN_SRC = namgen.c myio.c target.c src_gatherer.c template.c \
+			 dirscanner.c logging.c bt.c lex.yy.c y.tab.c
 NAMGEN_OBJ = $(NAMGEN_SRC:%.c=%.o)
 
 lex.yy.c: rules.l

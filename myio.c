@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "logging.h"
+
 #ifdef USE_ZIP
 #include "zzip.h"
 
@@ -18,10 +20,8 @@ extern int io_init(const char *argv0)
         fprintf(stderr, "Error: failed to open zipfile");
         return 1;
     }
-#ifndef NDEBUG
     else
-        printf("Loaded zip data from %s\n", argv0);
-#endif
+        debug("Loaded zip data from %s\n", argv0);
     return 0;
 }
 

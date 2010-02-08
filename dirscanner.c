@@ -11,6 +11,7 @@
 #include "target.h"
 #include "utlist.h"
 #include "src_gatherer.h"
+#include "logging.h"
 
 static char *rules_basename = "build";
 static char *rules_suffix = ".rules";
@@ -89,7 +90,8 @@ static char* load_verbatim()
 {
    struct stat st;
    stat("build.rules", &st);
-   char *buff = malloc(st.st_size);
+   char *buff = malloc(st.st_size+1);
+   memset(buff, 0, st.st_size+1);
    FILE *f = fopen("build.rules", "r");
    if (fread(buff, 1, st.st_size, f) != st.st_size)
       fprintf(stderr, "Error reading all expected bytes [%s]\n", __FUNCTION__);
@@ -101,6 +103,7 @@ static char* load_verbatim()
    else
       fprintf(stderr, "Failed to find expected VERBATIM section\n");
    free(buff);
+   debug("%s [%s]: found verbatim data\n", __FILE__, __FUNCTION__);
 
    return v;
 }
@@ -171,6 +174,7 @@ int iterate_directories(char * dirpath)
       res = 1;
       goto id_oops;
    }
+   debug("%s [%s]: dir = %s\n", __FILE__, __FUNCTION__, dirpath);
    process_directory(dirpath);
 
    DIR *dir;
