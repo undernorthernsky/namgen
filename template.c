@@ -16,7 +16,8 @@ static void do_shared_keys(target_entry *target, ngt_dictionary *dict)
    if (target->link_flags)
       ngt_set_string(dict, "TARGET_SPECIFIC_LF", target->link_flags);
    // FIXME: target->libs
-   ngt_set_string(dict, "SRC_EXPR", target->src);
+   if (target->src)
+      ngt_set_string(dict, "SRC_EXPR", target->src);
    // FIXME: allow explicit src extension
    if (strstr(target->src, ".cpp"))
       ngt_set_string(dict, "SRC_EXTENSION", "cpp");
