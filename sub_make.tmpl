@@ -17,79 +17,59 @@ endif
 # FIXME: should probably recurse into any sub-dirs
 {{THIS_DIR}}_clean:
 	(cd {{PATH_FROM_TOP}} && rm -rf $(FILES_TO_CLEAN))
-{{VERBATIM}}
-{{#PROGRAM_RULES}}
-# *** program: {{PROGRAM_NAME}} ***
-# all src files that are used for this program
-SRC_{{THIS_DIR}}_{{PROGRAM_NAME}}  := {{SRC_EXPR}}
-# the corresponding objects
-OBJ_{{THIS_DIR}}_{{PROGRAM_NAME}}  := $(SRC_{{THIS_DIR}}_{{PROGRAM_NAME}}:%.{{SRC_EXTENSION}}=%.o)
-# and the generated .d files for each src file
-DEPS_{{THIS_DIR}}_{{PROGRAM_NAME}} := $(OBJ_{{THIS_DIR}}_{{PROGRAM_NAME}}:%.o=%.d)
-# add the dependencies for this program
-DEPS_{{THIS_DIR}} += $(DEPS_{{THIS_DIR}}_{{PROGRAM_NAME}})
-
-# when generating .d files and compiling of this program set CF_TGT (compile flags, target)
-# to allow program-specific flags; also add -I. when someone uses <x.h> for local files
-$(OBJ_{{THIS_DIR}}_{{PROGRAM_NAME}}) $(DEPS_{{THIS_DIR}}_{{PROGRAM_NAME}}): CF_TGT := -I{{PATH_FROM_TOP}} {{INHERITED_INCLUDE}} {{TARGET_SPECIFIC_CF}}
-{{PATH_FROM_TOP}}/{{PROGRAM_NAME}}$(EXE_EXT): LF_TGT := {{TARGET_SPECIFIC_LF}}
+{{#HAS_VERBATIM}}
+# makefile fragment copied verbatim from build.rules
+{{VERBATIM}}{{/HAS_VERBATIM}}{{#PROGRAM_RULES}}
+# *** program: {{TARGET_NAME}} ***
+{{>src_depends}}
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): LF_TGT := {{TARGET_SPECIFIC_LF}}
+EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}} := {{EXTRA_OBJ_EXPR}}
 
 # add this program to the global 'make build' goals
-TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{PROGRAM_NAME}}$(EXE_EXT)
+TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 # link the program from the object files
-{{PATH_FROM_TOP}}/{{PROGRAM_NAME}}$(EXE_EXT): $(OBJ_{{THIS_DIR}}_{{PROGRAM_NAME}})
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}})
 	@$(LINK_CXX) -o $@ $(BIN_LINK_FLAGS) $(LF_TGT) $^
 
 # dependencies of this program
 # this statement causes linking with the requested libaries
 # defaults to using the shared-lib (if available)
-{{#DEPENDS}}{{PATH_FROM_TOP}}/{{PROGRAM_NAME}}$(EXE_EXT): {{DEPENDENCY}}.la
+{{#DEPENDS}}{{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): {{DEPENDENCY}}.la
 {{/DEPENDS}}
 
 # should this program be installed into DESTDIR?
-{{#IF_INSTALL}}$(DESTDIR)/{{DEST_SUB}}{{PROGRAM_NAME}}$(EXE_EXT): {{PATH_FROM_TOP}}/{{PROGRAM_NAME}}$(EXE_EXT)
-	install -t $(DESTDIR)/{{DEST_SUB}} {{PATH_FROM_TOP}}/.libs/{{PROGRAM_NAME}}
+{{#IF_INSTALL}}$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}$(EXE_EXT): {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
+	install -t $(DESTDIR)/{{DEST_SUB}} {{PATH_FROM_TOP}}/.libs/{{TARGET_NAME}}
 
 # add this program to the global 'make install' goals
-TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{PROGRAM_NAME}}$(EXE_EXT)
+TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}$(EXE_EXT)
 {{/IF_INSTALL}}{{/PROGRAM_RULES}}
 {{#LIBRARY_RULES}}
-# *** library: {{LIBRARY_NAME}} ***
-# all src files that are used for this library
-SRC_{{THIS_DIR}}_{{LIBRARY_NAME}}  := {{SRC_EXPR}}
-# the corresponding objects
-OBJ_{{THIS_DIR}}_{{LIBRARY_NAME}}  := $(SRC_{{THIS_DIR}}_{{LIBRARY_NAME}}:%.{{SRC_EXTENSION}}=%.o)
-OBJ_LO_{{THIS_DIR}}_{{LIBRARY_NAME}}  := $(OBJ_{{THIS_DIR}}_{{LIBRARY_NAME}}:%.o=%.lo)
-# and the generated .d files for each src file
-DEPS_{{THIS_DIR}}_{{LIBRARY_NAME}} := $(OBJ_{{THIS_DIR}}_{{LIBRARY_NAME}}:%.o=%.d)
-
-# add the dependencies for this library
-DEPS_{{THIS_DIR}} += $(DEPS_{{THIS_DIR}}_{{LIBRARY_NAME}})
-
-# when generating .d files and compiling of this program set CF_TGT (compile flags, target)
-# to allow program-specific flags; also add -I. when someone uses <x.h> for local files
-$(OBJ_{{THIS_DIR}}_{{LIBRARY_NAME}}) $(OBJ_LO_{{THIS_DIR}}_{{LIBRARY_NAME}}) $(DEPS_{{THIS_DIR}}_{{LIBRARY_NAME}}): CF_TGT := -I{{PATH_FROM_TOP}} {{INHERITED_INCLUDE}} {{TARGET_SPECIFIC_CF}}
-{{PATH_FROM_TOP}}/{{LIBRARY_NAME}}.la: LF_TGT := {{TARGET_SPECIFIC_LF}}
+# *** library: {{TARGET_NAME}} ***
+{{>src_depends}}
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: LF_TGT := {{TARGET_SPECIFIC_LF}}
+EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}} := {{EXTRA_OBJ_EXPR}}
+EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}} := $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}}:%.o=%.lo)
 
 # this will contain --rpath ... (which determines if the shared version is built)
 # 'skip-shared = true' disables shared building on a per-library base
 # shared libs can also be deactivated globally
-LINK_FLAGS_{{LIBRARY_NAME}} := {{BUILD_THIS_AS_SHARED}}
+LINK_FLAGS_{{TARGET_NAME}} := {{BUILD_THIS_AS_SHARED}}
 
-TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{LIBRARY_NAME}}.la
-{{PATH_FROM_TOP}}/{{LIBRARY_NAME}}.la: $(OBJ_LO_{{THIS_DIR}}_{{LIBRARY_NAME}})
-	@$(LINK_CXX) -o $@ $(LINK_FLAGS_{{LIBRARY_NAME}}) $(LF_TGT) $^
+TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}})
+	@$(LINK_CXX) -o $@ $(LINK_FLAGS_{{TARGET_NAME}}) $(LF_TGT) $^
 
 # dependencies
-{{#DEPENDS}}{{THIS_DIR}}/{{LIBRARY_NAME}}.la: {{DEPENDENCY}}.la
+{{#DEPENDS}}{{THIS_DIR}}/{{TARGET_NAME}}.la: {{DEPENDENCY}}.la
 {{/DEPENDS}}
 
 # FIXME: handle .dll for WIN32, what about static libs? never installed?
 {{#IF_INSTALL}}# install into DESTDIR
-$(DESTDIR)/{{DEST_SUB}}{{LIBRARY_NAME}}.so.0: {{PATH_FROM_TOP}}/{{LIBRARY_NAME}}.la
-	install -t $(DESTDIR)/{{DEST_SUB}} {{PATH_FROM_TOP}}/.libs/{{LIBRARY_NAME}}.so.0
+$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}.so.0: {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
+	install -t $(DESTDIR)/{{DEST_SUB}} {{PATH_FROM_TOP}}/.libs/{{TARGET_NAME}}.so.0
 
-TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{LIBRARY_NAME}}.so.0
+TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}.so.0
 {{/IF_INSTALL}}{{/LIBRARY_RULES}}
 
 # include all dependency files if not cleaning

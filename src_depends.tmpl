@@ -1,0 +1,13 @@
+# all src files that are used for this target
+SRC_{{THIS_DIR}}_{{TARGET_NAME}}     := {{SRC_EXPR}}
+# the corresponding objects
+OBJ_{{THIS_DIR}}_{{TARGET_NAME}}     := $(SRC_{{THIS_DIR}}_{{TARGET_NAME}}:%.{{SRC_EXTENSION}}=%.o)
+OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}  := $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}:%.o=%.lo)
+# and the generated .d files for each src file
+DEPS_{{THIS_DIR}}_{{TARGET_NAME}}    := $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}:%.o=%.d)
+# add the dependencies for this target
+DEPS_{{THIS_DIR}}                    += $(DEPS_{{THIS_DIR}}_{{TARGET_NAME}})
+
+# when generating .d files and compiling of this program set CF_TGT (compile flags, target)
+# to allow program-specific flags; also add -I. when someone uses <x.h> for local files
+$(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(DEPS_{{THIS_DIR}}_{{TARGET_NAME}}): CF_TGT := -I{{PATH_FROM_TOP}} {{INHERITED_INCLUDE}} {{TARGET_SPECIFIC_CF}}
