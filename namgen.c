@@ -17,6 +17,7 @@
 #include "dirscanner.h"
 #include "target.h"
 #include "template.h"
+#include "logging.h"
 
 static ngt_template *template = NULL;
 static char *template_file = COMPILED_IN_TEMPLATE_FILE; 
@@ -159,6 +160,7 @@ int main(int argc, char *argv[])
         {"print",    0, 0, 'p'},
         {"help",     0, 0, 'h'},
         {"show-doc", 0, 0, 'H'},
+        {"debug",    0, 0, 'd'},
         {0, 0, 0, 0}
     };
     charp_list_entry *additional_dir_list_head = NULL; 
@@ -168,13 +170,16 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    while ((c = getopt_long(argc, argv, "a:ph?H", long_opts, &opt_idx)) != -1) {
+    while ((c = getopt_long(argc, argv, "a:dph?H", long_opts, &opt_idx)) != -1) {
         switch(c) {
             case 'a':
                 LL_PREPEND(additional_dir_list_head, make_list_entry(optarg));
                 break;
             case 'p':
                 print_rules = 1;
+                break;
+            case 'd':
+                set_debug_on(1);
                 break;
             case 'h':
             case '?':

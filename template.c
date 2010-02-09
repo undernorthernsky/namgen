@@ -3,11 +3,35 @@
 #include "stringbuilder.h"
 #include "template.h"
 #include "utlist.h"
+#include "myio.h"
+#include "logging.h"
 
 
 extern char *top_dir;
 
 #define SECTION_VISIBLE 1
+
+static char *srcdepends_tmpl_char = NULL;
+
+static char* template_load_cb(const char *name)
+{
+    if (!strcmp(name, "src_depends"))
+    {
+        if (!srcdepends_tmpl_char)
+            srcdepends_tmpl_char = load_template_string(name);
+        return srcdepends_tmpl_char;
+    } else
+    {
+        // if not a cached template just load it every time...
+        return load_template_string(name);
+    }
+
+}
+
+static void template_cleanup_cb(const char* name, char* template)
+{
+    // do nothing; free()ing causes 'double free' errors
+}
 
 static void do_shared_keys(target_entry *target, ngt_dictionary *dict)
 {
@@ -17,14 +41,24 @@ static void do_shared_keys(target_entry *target, ngt_dictionary *dict)
       ngt_set_string(dict, "TARGET_SPECIFIC_LF", target->link_flags);
    // FIXME: target->libs
    if (target->src)
-      ngt_set_string(dict, "SRC_EXPR", target->src);
-   // FIXME: allow explicit src extension
-   if (strstr(target->src, ".cpp"))
-      ngt_set_string(dict, "SRC_EXTENSION", "cpp");
-   else if (strstr(target->src, ".cxx"))
-      ngt_set_string(dict, "SRC_EXTENSION", "cxx");
-   else if (strstr(target->src, ".c"))
-      ngt_set_string(dict, "SRC_EXTENSION", "c");
+   {
+       ngt_set_string(dict, "SRC_EXPR", target->src);
+       if (ngt_set_include_cb(dict, "src_depends", template_load_cb, template_cleanup_cb))
+           fprintf(stderr, "ngt_set_include_cb failed!\n");
+       ngt_add_dictionary(dict, "src_depends", ngt_dictionary_new(), SECTION_VISIBLE);
+ 
+       // FIXME: allow explicit src extension
+       if (strstr(target->src, ".cpp"))
+           ngt_set_string(dict, "SRC_EXTENSION", "cpp");
+       else if (strstr(target->src, ".cxx"))
+           ngt_set_string(dict, "SRC_EXTENSION", "cxx");
+       else if (strstr(target->src, ".c"))
+           ngt_set_string(dict, "SRC_EXTENSION", "c");
+   }
+   if (target->extra_obj)
+   {
+       ngt_set_string(dict, "EXTRA_OBJ_EXPR", target->extra_obj);
+   }
 
    if (!(target->other_flags & SKIP_INSTALL_MASK))
    {
@@ -77,7 +111,7 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
 static ngt_dictionary* dict_for_program_decl(target_entry *target)
 {
    ngt_dictionary *dict = ngt_dictionary_new();
-   ngt_set_string(dict, "PROGRAM_NAME", target->target_name);
+   ngt_set_string(dict, "TARGET_NAME", target->target_name);
    do_shared_keys(target, dict);
    do_dependencies(target, dict);
    return dict;
@@ -86,7 +120,7 @@ static ngt_dictionary* dict_for_program_decl(target_entry *target)
 static ngt_dictionary* dict_for_library_decl(target_entry *target)
 {
    ngt_dictionary *dict = ngt_dictionary_new();
-   ngt_set_string(dict, "LIBRARY_NAME", target->target_name);
+   ngt_set_string(dict, "TARGET_NAME", target->target_name);
    do_shared_keys(target, dict);
    do_dependencies(target, dict);
    if (!(target->other_flags & SKIP_SHARED_MASK))
@@ -100,13 +134,17 @@ ngt_dictionary* dict_for_module(module_entry *module)
 {
    assert(module);
    ngt_dictionary *dict = ngt_dictionary_new();
-   
+  
    // global variables
    ngt_set_string(dict, "TOP_DIR", top_dir);
    ngt_set_string(dict, "THIS_DIR", module->dir_name);
    ngt_set_string(dict, "PATH_FROM_TOP", module->path_from_top);
    if (module->verbatim)
-      ngt_set_string(dict, "VERBATIM", module->verbatim);
+   {
+      ngt_dictionary *verb_dict = ngt_dictionary_new();
+      ngt_set_string(verb_dict, "VERBATIM", module->verbatim);
+      ngt_add_dictionary(dict, "HAS_VERBATIM", verb_dict, SECTION_VISIBLE);
+   }
 
    target_entry *target;
 

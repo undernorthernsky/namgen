@@ -54,6 +54,7 @@ static char* load_file_from_zip(const char *filename)
     memset(buff, 0, len + 1);
     zzip_file_read(file, buff, len);
     zzip_file_close(file);
+    debug("loaded file: %s [%i bytes]\n", filename, stat.st_size);
 
     return buff;
 }
@@ -120,6 +121,13 @@ int load_template(ngt_template* tpl, const char *filename)
     return ngt_load_from_filename(tpl, filename);
 }
 
-
-
 #endif
+
+char* load_template_string(const char *name)
+{
+    char *realname = malloc(strlen(name) + 6);
+    sprintf(realname, "%s.tmpl", name);
+    return load_file(realname);
+}
+
+

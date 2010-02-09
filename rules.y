@@ -42,8 +42,9 @@ int yywrap()
 %}
 
 %start declarations
-%token PROGRAM LIBRARY SRC DEPENDS FLAGS LIBS LDFLAGS DESTDIR SKIP_INSTALL SKIP_SHARED TRUE_VALUE FALSE_VALUE
-VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE
+%token PROGRAM LIBRARY WORKER
+SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED TRUE_VALUE FALSE_VALUE
+VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE COMMENT_CHAR
 
 %%
 declarations:
@@ -51,7 +52,7 @@ declarations:
            ;
 
 declaration:
-           program_def | library_def
+           program_def | library_def | worker_def | comment_line
            ;
 
 program_def:
@@ -76,6 +77,25 @@ library_def:
                current_target = NULL;
            }
 
+worker_def:
+           WORKER quoted_name
+           {
+               current_target = target_entry_new(TYPE_WORKER, $2);
+           }
+           def_content
+           {
+               module_add_target(current_target);
+               current_target = NULL;
+           }
+
+comment_line:
+            COMMENT_CHAR comment_data
+            ;
+
+comment_data:
+            | comment_data word_variable_filename_stuff
+            ;
+
 quoted_name:
            QUOTE WORD QUOTE
            {
@@ -97,12 +117,19 @@ def_statement:
                  | flags_statement ; 
                  | ld_flags_statement ;
                  | libs_statement ;
+                 | add_objects_statement;
                  | skip_install_statement { target_set_skip_install(current_target, $1); }
                  | skip_shared_statement { target_set_skip_shared(current_target, $1); }
+                 | comment_line ;
 
 src_statement:
              SRC EQUALS { src_gatherer_reset(); }
              list_of_src_expr { current_target->src = src_gatherer_get_result(); }
+
+add_objects_statement:
+             ADD_OBJECTS EQUALS { src_gatherer_reset(); }
+             list_of_src_expr { current_target->extra_obj = src_gatherer_get_result(); }
+
 
 depends_statement:
                  DEPENDS EQUALS list_of_depends

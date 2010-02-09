@@ -30,11 +30,13 @@ static void abort_parsing_now()
 %%
 program                 return PROGRAM; 
 library                 return LIBRARY;
+worker                  return WORKER;
 src                     return SRC;
 depends                 return DEPENDS; 
 flags                   return FLAGS;
 libs                    return LIBS;
 ld-flags                return LDFLAGS;
+extra-obj               return ADD_OBJECTS;
 dest-dir                return DESTDIR;
 skip-install            return SKIP_INSTALL;
 skip-shared             return SKIP_SHARED;
@@ -47,11 +49,12 @@ VERBATIM                abort_parsing_now(); return EOF;
 \"                      return QUOTE;
 \{                      return OBRACE;
 \}                      return EBRACE;
+#                       return COMMENT_CHAR;
 
 [a-zA-Z0-9_\-]+         yylval = strdup(yytext); return WORD;
 [a-zA-Z0-9\/\._\-]+     yylval = strdup(yytext); return FILENAME;
 [a-zA-Z0-9_\-\*\.]+     yylval = strdup(yytext); return WILDCARD;
-[a-zA-Z0-9\/\.,_\-]+     yylval = strdup(yytext); return STUFF;
+[a-zA-Z0-9\/\.,:_\-]+     yylval = strdup(yytext); return STUFF;
 $\([a-zA-Z0-9_ ]+\)       yylval = strdup(yytext); return VARIABLE;
 
 \n                      /* igore newlines */; 

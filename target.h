@@ -5,7 +5,8 @@
 
 typedef enum target_type {
    TYPE_PROGRAM,
-   TYPE_LIBRARY
+   TYPE_LIBRARY,
+   TYPE_WORKER
 } target_type;
 
 struct target_entry;
@@ -29,6 +30,7 @@ typedef struct target_entry {
    char        *directory;
    char        *path_from_top;
    char        *src;
+   char        *extra_obj;
    char        *compile_flags;
    char        *link_flags;
    char        *libs;

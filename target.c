@@ -68,6 +68,8 @@ target_entry* target_entry_new(target_type t, const char *name)
       case TYPE_LIBRARY:
          ++library_count;
          break;
+      case TYPE_WORKER:
+         break;
       default:
          break;
    }
@@ -81,6 +83,7 @@ static void target_entry_free(target_entry *e)
    e->directory = NULL;
    e->path_from_top = NULL;
    SF(e->src);
+   SF(e->extra_obj);
    SF(e->compile_flags);
    SF(e->link_flags);
    SF(e->libs);
@@ -114,6 +117,41 @@ static void module_entry_free(module_entry *e)
    free(e);
 }
 
+static depend_list_entry* depend_list_copy(depend_list_entry *l)
+{
+    depend_list_entry *s, *d, *dh;
+    s = l;
+    dh = NULL;
+    while (s)
+    {
+        d = depend_list_entry_new(s->str);
+        LL_APPEND(dh, d);
+        s = s->next;
+    }
+    return dh;
+}
+
+#define SC(s) if (prog->s) lib->s = strdup(prog->s);
+
+static target_entry* libtarget_for_worker(target_entry *prog)
+{
+    char *name_as_lib = malloc(strlen(prog->target_name) + 4);
+    sprintf(name_as_lib, "lib%s", prog->target_name);
+
+    target_entry *lib = target_entry_new(TYPE_LIBRARY, name_as_lib);
+    SC(src);
+    SC(extra_obj);
+    SC(compile_flags);
+    SC(link_flags);
+    SC(libs);
+    lib->dest_sub_path = strdup("lib/embrace/");
+
+    lib->dependencies = depend_list_copy(prog->dependencies);
+
+    return lib;
+}
+#undef SC
+
 target_entry* module_add_target(target_entry *e)
 {
    // check for target name collision
@@ -122,6 +160,19 @@ target_entry* module_add_target(target_entry *e)
    if (_e)
       return _e->ptr;
 
+   if (e->type == TYPE_WORKER)
+   {
+       // register this decl twice
+       e->type = TYPE_PROGRAM; // _this_ is a program
+       ++program_count;
+
+       // register a copy as a lib
+       char *name_as_lib = malloc(strlen(e->target_name) + 4);
+       sprintf(name_as_lib, "lib%s", e->target_name);
+       // FIXME: name clashes of lib
+       module_add_target(libtarget_for_worker(e));
+   }
+
    // copy ptrs from module entry
    e->dir_name = current_module->dir_name;
    e->directory = current_module->directory;
@@ -129,10 +180,14 @@ target_entry* module_add_target(target_entry *e)
    // add to current module
    LL_APPEND(current_module->targets, e);
 
-   _e = malloc(sizeof(target_lookup_entry));
-   _e->target_name = e->target_name;
-   _e->ptr = e;
-   HASH_ADD_KEYPTR(hh, all_targets_hash, _e->target_name, strlen(_e->target_name), _e);
+   if (e->type == TYPE_LIBRARY)
+   {
+       // hash lib-names for dependency lookup
+       _e = malloc(sizeof(target_lookup_entry));
+       _e->target_name = e->target_name;
+       _e->ptr = e;
+       HASH_ADD_KEYPTR(hh, all_targets_hash, _e->target_name, strlen(_e->target_name), _e);
+   }
    return NULL;
 }
 
