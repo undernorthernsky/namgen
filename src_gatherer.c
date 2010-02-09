@@ -45,8 +45,11 @@ void src_gatherer_add_wildcard(const char *f)
 {
    debug("%s: %s\n", __FUNCTION__, f);
    sb_append_str(src_sb, "$(wildcard ");
-   sb_append_str(src_sb, current_path_from_top);
-   sb_append_str(src_sb, "/");
+   if (!is_explicit_mode)
+   {
+      sb_append_str(src_sb, current_path_from_top);
+      sb_append_str(src_sb, "/");
+   }
    sb_append_str(src_sb, f);
    sb_append_str(src_sb, ") ");
 }
