@@ -1,6 +1,6 @@
 USE_ZIP := 1
 DEBUG := 1
-TEMPLATES := sub_make.tmpl
+TEMPLATES := $(wildcard *.tmpl)
 
 ifdef USE_ZIP
 TMPL_1 := sub_make.tmpl
@@ -23,7 +23,7 @@ INC     := -Iinclude
 FLAGS   := -Wall -pedantic --std=c99 -Os
 DEFS    := $(DEBUG_FLAG) $(ZIP_FLAG) -D_GNU_SOURCE -DCOMPILED_IN_TEMPLATE_FILE=\"$(TMPL_1)\"
 CFLAGS  := $(INC) $(FLAGS) $(DEFS)
-LDFLAGS := -Llib -lngtemplate -luseful -ll $(ZIP_LIBS)
+LDFLAGS := -rdynamic -Llib -lngtemplate -luseful -ll $(ZIP_LIBS)
 
 .PHONY: all clean
 
