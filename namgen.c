@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
     while ((c = getopt_long(argc, argv, "a:dph?H", long_opts, &opt_idx)) != -1) {
         switch(c) {
             case 'a':
-                LL_PREPEND(additional_dir_list_head, make_list_entry(optarg));
+                LL_APPEND(additional_dir_list_head, make_list_entry(optarg));
                 break;
             case 'p':
                 print_rules = 1;

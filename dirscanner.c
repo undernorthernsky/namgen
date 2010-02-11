@@ -155,7 +155,7 @@ static int process_directory(char * name)
    
    module_entry *module = module_entry_new(current_dir, current_directory, current_dir_path_from_top);
    parse_rules(module);
-   printf("Loaded build.rules from %s\n", current_directory);
+   debug("Loaded build.rules from %s\n", current_directory);
 
 pd_cleanup:
    if (fb)

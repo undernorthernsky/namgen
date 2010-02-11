@@ -4,6 +4,7 @@
 
 #include "target.h"
 #include "utlist.h"
+#include "logging.h"
 
 #define SF(x) if (x) free(x); x = NULL
 
@@ -209,7 +210,7 @@ int resolve_all_dependencies(void)
             HASH_FIND_STR(all_targets_hash, de->str, tle);
             if (tle)
             {
-               printf("  Found '%s' dependency: %s\n", te->target_name, de->str);
+               debug("  Found '%s' dependency: %s\n", te->target_name, de->str);
                de->ptr = tle->ptr;
             } else
             {

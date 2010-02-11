@@ -61,7 +61,7 @@ TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 	@$(LINK_CXX) -o $@ $(LINK_FLAGS_{{TARGET_NAME}}) $(LF_TGT) $^
 
 # dependencies
-{{#DEPENDS}}{{THIS_DIR}}/{{TARGET_NAME}}.la: {{DEPENDENCY}}.la
+{{#DEPENDS}}{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: {{DEPENDENCY}}.la
 {{/DEPENDS}}
 
 # FIXME: handle .dll for WIN32, what about static libs? never installed?
