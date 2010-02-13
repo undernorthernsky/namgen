@@ -82,3 +82,16 @@ skip-install = true
 
 Only build a static library version:
 skip-shared = true
+
+
+= Crosscompiling with mingw =
+
+http://www.gnu.org/software/libtool/
+./configure --prefix ... \ 
+  --host=i586-mingw32msvc --program-prefix=i586-mingw32msvc-
+
+In 'make.conf'
+
+WIN32 := 1
+LIBTOOL := /path/tok/i586-mingw32msvc-libtool
+CXX := i586-mingw32msvc-g++
