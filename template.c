@@ -33,6 +33,20 @@ static void template_cleanup_cb(const char* name, char* template)
     // do nothing; free()ing causes 'double free' errors
 }
 
+static const char* get_target_install_subdir(target_entry *e)
+{
+   if (e->dest_sub_path)
+      return e->dest_sub_path;
+   if (e->type == TYPE_PROGRAM)
+   {
+      return "bin/";
+   } else if (e->type == TYPE_LIBRARY)
+   {
+      return "lib/";
+   }
+   return "";
+}
+
 static void do_shared_keys(target_entry *target, ngt_dictionary *dict)
 {
    if (target->compile_flags)
@@ -62,19 +76,7 @@ static void do_shared_keys(target_entry *target, ngt_dictionary *dict)
 
    if (!(target->other_flags & SKIP_INSTALL_MASK))
    {
-      if (target->dest_sub_path)
-      {
-         ngt_set_string(dict, "DEST_SUB", target->dest_sub_path);
-      } else
-      {
-         if (target->type == TYPE_PROGRAM)
-         {
-            ngt_set_string(dict, "DEST_SUB", "bin/");
-         } else if (target->type == TYPE_LIBRARY)
-         {
-            ngt_set_string(dict, "DEST_SUB", "lib/");
-         }
-      }
+      ngt_set_string(dict, "DEST_SUB", get_target_install_subdir(target));
       ngt_add_dictionary(dict, "IF_INSTALL", ngt_dictionary_new(), SECTION_VISIBLE);
    }
 }
@@ -96,6 +98,13 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
       char *p = sb_make_cstring(sb);
       ngt_set_string(dict_dep, "DEPENDENCY", p);
       free(p);
+      if (!(dep->ptr->other_flags & SKIP_INSTALL_MASK))
+      {
+         ngt_dictionary * dict_dep_install = ngt_dictionary_new();
+         ngt_set_string(dict_dep_install, "DEP_INSTALL_SUBPATH", get_target_install_subdir(dep->ptr));
+         ngt_set_string(dict_dep_install, "DEP_NAME", dep->ptr->target_name);
+         ngt_add_dictionary(dict, "DEPENDS_INSTALL", dict_dep_install, SECTION_VISIBLE);
+      }
       ngt_add_dictionary(dict, "DEPENDS", dict_dep, SECTION_VISIBLE);
    }
    if (include->pos)
@@ -117,6 +126,15 @@ static ngt_dictionary* dict_for_program_decl(target_entry *target)
    return dict;
 }
 
+void make_dotted(char *s)
+{
+   for (char *p = s; *p != '\0'; p++)
+   {
+      if (*p == '.')
+         *p = ':';
+   }
+}
+
 static ngt_dictionary* dict_for_library_decl(target_entry *target)
 {
    ngt_dictionary *dict = ngt_dictionary_new();
@@ -126,6 +144,18 @@ static ngt_dictionary* dict_for_library_decl(target_entry *target)
    if (!(target->other_flags & SKIP_SHARED_MASK))
    {
       ngt_set_string(dict, "BUILD_THIS_AS_SHARED", "$(LIB_BUILD_SHARED)");
+   }
+   if (target->lib_version_num)
+   {
+      if (target->other_flags & VERSION_INFO_SCHEMA)
+      {
+         ngt_set_string(dict, "VERSION_SCHEMA", "-version-info");
+      } else
+      {
+         ngt_set_string(dict, "VERSION_SCHEMA", "-version-number");
+      }
+      make_dotted(target->lib_version_num);
+      ngt_set_string(dict, "VERSION_NUMBER", target->lib_version_num);
    }
    return dict;
 }
@@ -158,6 +188,10 @@ ngt_dictionary* dict_for_module(module_entry *module)
             break;
          case TYPE_LIBRARY:
             target_dict = dict_for_library_decl(target);
+            break;
+         case TYPE_WORKER:
+            fprintf(stderr, "Program-bug: Got a TYPE_WORKER target in %s\n", __FUNCTION__);
+            exit(1);
             break;
       }
       

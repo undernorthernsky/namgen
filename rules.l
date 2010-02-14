@@ -40,6 +40,8 @@ extra-obj               return ADD_OBJECTS;
 dest-dir                return DESTDIR;
 skip-install            return SKIP_INSTALL;
 skip-shared             return SKIP_SHARED;
+version-info            return VERSION_INFO;
+version-number          return VERSION_NUMBER;
 true                    return TRUE_VALUE;
 false                   return FALSE_VALUE;
 VERBATIM                abort_parsing_now(); return EOF; 
@@ -51,11 +53,12 @@ VERBATIM                abort_parsing_now(); return EOF;
 \}                      return EBRACE;
 #                       return COMMENT_CHAR;
 
+[0-9]+\.[0-9]+\.[0-9]+  yylval = strdup(yytext); return THREE_NUMBERS;
 [a-zA-Z0-9_\-]+         yylval = strdup(yytext); return WORD;
 [a-zA-Z0-9\/\._\-]+     yylval = strdup(yytext); return FILENAME;
 [a-zA-Z0-9_\-\*\.]+     yylval = strdup(yytext); return WILDCARD;
-[a-zA-Z0-9\/\.,:_\-]+     yylval = strdup(yytext); return STUFF;
-$\([a-zA-Z0-9_ ]+\)       yylval = strdup(yytext); return VARIABLE;
+[a-zA-Z0-9\/\.,:_\-]+   yylval = strdup(yytext); return STUFF;
+$\([a-zA-Z0-9_ ]+\)     yylval = strdup(yytext); return VARIABLE;
 
 \n                      /* igore newlines */; 
 [ \t]+                  /* ignore whitespace */;

@@ -43,7 +43,8 @@ int yywrap()
 
 %start declarations
 %token PROGRAM LIBRARY WORKER
-SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED TRUE_VALUE FALSE_VALUE
+SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
+TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
 VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE COMMENT_CHAR
 
 %%
@@ -117,6 +118,7 @@ def_statement:
                  | flags_statement ; 
                  | ld_flags_statement ;
                  | libs_statement ;
+                 | version_num_statement ;
                  | add_objects_statement;
                  | skip_install_statement { target_set_skip_install(current_target, $1); }
                  | skip_shared_statement { target_set_skip_shared(current_target, $1); }
@@ -140,6 +142,14 @@ destdir_statement:
                  {
                      $$ = $3;
                  }
+
+version_num_statement:
+                     vnum_schema EQUALS THREE_NUMBERS
+                     { current_target->lib_version_num = strdup($3); }
+
+vnum_schema:
+           VERSION_NUMBER { current_target->other_flags &= ~VERSION_INFO_SCHEMA; }
+           | VERSION_INFO { current_target->other_flags |= VERSION_INFO_SCHEMA; }
 
 flags_statement:
                FLAGS EQUALS { sb_reset(sb); }

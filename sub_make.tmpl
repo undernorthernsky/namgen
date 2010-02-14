@@ -14,9 +14,8 @@ ifneq ($(TOP_DIR), $(shell basename $$PWD))
 endif
 
 # clean target for this sub-dir
-# FIXME: should probably recurse into any sub-dirs
 {{THIS_DIR}}_clean:
-	(cd {{PATH_FROM_TOP}} && rm -rf $(FILES_TO_CLEAN))
+	(cd {{PATH_FROM_TOP}} && rm -rf $(FILES_TO_CLEAN) $({{THIS_DIR}}_TARGETS))
 {{#HAS_VERBATIM}}
 # makefile fragment copied verbatim from build.rules
 {{VERBATIM}}{{/HAS_VERBATIM}}{{#PROGRAM_RULES}}
@@ -27,6 +26,7 @@ EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}} := {{EXTRA_OBJ_EXPR}}
 
 # add this program to the global 'make build' goals
 TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
+{{THIS_DIR}}_TARGETS += {{TARGET_NAME}}$(EXE_EXT)
 # link the program from the object files
 {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}})
 	@$(LINK_CXX) -o $@ $(BIN_LINK_FLAGS) $(LF_TGT) $^
@@ -39,15 +39,18 @@ TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 
 # should this program be installed into DESTDIR?
 {{#IF_INSTALL}}$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}$(EXE_EXT): {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
-	install -t $(DESTDIR)/{{DEST_SUB}} {{PATH_FROM_TOP}}/.libs/{{TARGET_NAME}}
+	$(INSTALL_CMD) $< $(DESTDIR)/{{DEST_SUB}}
 
-# add this program to the global 'make install' goals
-TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}$(EXE_EXT)
+# add this program to the 'install' goals for this directory
+{{THIS_DIR}}_TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}$(EXE_EXT)
+{{#DEPENDS_INSTALL}}$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}$(EXE_EXT): $(DESTDIR)/{{DEP_INSTALL_SUBPATH}}{{DEP_NAME}}.la
+{{/DEPENDS_INSTALL}}
+
 {{/IF_INSTALL}}{{/PROGRAM_RULES}}
 {{#LIBRARY_RULES}}
 # *** library: {{TARGET_NAME}} ***
 {{>src_depends}}
-{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: LF_TGT := {{TARGET_SPECIFIC_LF}}
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: LF_TGT := {{TARGET_SPECIFIC_LF}} {{VERSION_SCHEMA}} {{VERSION_NUMBER}}
 EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}} := {{EXTRA_OBJ_EXPR}}
 EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}} := $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}}:%.o=%.lo)
 
@@ -57,6 +60,7 @@ EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}} := $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_N
 LINK_FLAGS_{{TARGET_NAME}} := {{BUILD_THIS_AS_SHARED}}
 
 TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
+{{THIS_DIR}}_TARGETS += {{TARGET_NAME}}.la
 {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}})
 	@$(LINK_CXX) -o $@ $(LINK_FLAGS_{{TARGET_NAME}}) $(LF_TGT) $^
 
@@ -66,11 +70,17 @@ TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 
 # FIXME: handle .dll for WIN32, what about static libs? never installed?
 {{#IF_INSTALL}}# install into DESTDIR
-$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}.so.0: {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
-	install -t $(DESTDIR)/{{DEST_SUB}} {{PATH_FROM_TOP}}/.libs/{{TARGET_NAME}}.so.0
+$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}.la: {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
+	$(INSTALL_CMD) $< $(DESTDIR)/{{DEST_SUB}}
 
-TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}.so.0
+{{THIS_DIR}}_TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}.la
+{{#DEPENDS_INSTALL}}$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}.la: $(DESTDIR)/{{DEP_INSTALL_SUBPATH}}{{DEP_NAME}}.la
 {{/IF_INSTALL}}{{/LIBRARY_RULES}}
+
+{{THIS_DIR}}_install: $({{THIS_DIR}}_TARGETS_TO_INSTALL)
+
+{{THIS_DIR}}_uninstall: {{PATH_FROM_TOP}}
+	$(UINST_CMD) $({{THIS_DIR}}_TARGETS_TO_INSTALL)
 
 # include all dependency files if not cleaning
 ifneq "$(MAKECMDGOALS)" "clean"

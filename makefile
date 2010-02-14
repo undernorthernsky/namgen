@@ -23,7 +23,7 @@ INC     := -Iinclude
 FLAGS   := -Wall -pedantic --std=c99 -Os
 DEFS    := $(DEBUG_FLAG) $(ZIP_FLAG) -D_GNU_SOURCE -DCOMPILED_IN_TEMPLATE_FILE=\"$(TMPL_1)\"
 CFLAGS  := $(INC) $(FLAGS) $(DEFS)
-LDFLAGS := -rdynamic -Llib -lngtemplate -luseful -ll $(ZIP_LIBS)
+LDFLAGS := -g -rdynamic -Llib -lngtemplate -luseful -ll $(ZIP_LIBS)
 
 .PHONY: all clean
 

@@ -89,6 +89,7 @@ static void target_entry_free(target_entry *e)
    SF(e->link_flags);
    SF(e->libs);
    SF(e->dest_sub_path);
+   SF(e->lib_version_num);
    depend_list_entry *a, *b;
    a = e->dependencies;
    while (a)
@@ -145,9 +146,11 @@ static target_entry* libtarget_for_worker(target_entry *prog)
     SC(compile_flags);
     SC(link_flags);
     SC(libs);
+    SC(lib_version_num);
     lib->dest_sub_path = strdup("lib/embrace/");
 
     lib->dependencies = depend_list_copy(prog->dependencies);
+    lib->other_flags = prog->other_flags;
 
     return lib;
 }
@@ -290,6 +293,10 @@ void print_target_decl(target_entry *e)
       printf("  skip-install: true\n");
    if (e->other_flags & SKIP_SHARED_MASK)
       printf("  skip-shared: true\n");
+   if (e->lib_version_num)
+      printf("  version-%s: %s\n",
+            (e->other_flags & VERSION_INFO_SCHEMA) ?
+            "info" : "number", e->lib_version_num);
 
    if (e->dependencies)
    {

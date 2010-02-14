@@ -22,6 +22,7 @@ typedef struct depend_list_entry {
 
 #define SKIP_INSTALL_MASK 0x1
 #define SKIP_SHARED_MASK  0x2
+#define VERSION_INFO_SCHEMA 0x4
 
 typedef struct target_entry {
    target_type type;
@@ -33,6 +34,7 @@ typedef struct target_entry {
    char        *extra_obj;
    char        *compile_flags;
    char        *link_flags;
+   char        *lib_version_num;
    char        *libs;
    char        *dest_sub_path;
    depend_list_entry *dependencies;
