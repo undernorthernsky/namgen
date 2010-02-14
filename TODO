@@ -1,15 +1,22 @@
-* library filename
-  * dll, so, so.X.Y
-  * library "foo" -> libfoo.so | foo.dll
+* using -rpath to trigger static/shared lib handling is somewhat broken
+  libtool chokes on install (because of missing .lai file), which isn't
+  generated (as libtool assumes no -rpath means a convenience lib)
+ 
+  http://www.gnu.org/software/libtool/manual/libtool.html#Link-mode
+
+  -static, -all-static, -static-libtool-libs, -shared, -no-install
+
+  Maybe add 'skip-static = true' as well?
 
 * installing of binaries
   * if -static then the actual target is x/y and not x/.libs/y
   * win32 not tested
 
-* verbatim make fragment support
-
 * rethink 'ld-flags' vs 'libs'
+  'libs' isn't used at all at this time
 
 * cleanup of module/target specific flag handling?
+  there are no longer module-specific flags; the only way to do
+  this is to declare variables in a VERBATIM section and use those
 
 * custom production (sed xxx.cpp > yyy.cpp)
