@@ -57,4 +57,7 @@ lib/libngtemplate.a:
 	./buildlib.sh
 
 clean:
-	rm -f namgen namgen.bin *.o lex.yy.c y.tab.c y.tab.h data.zip
+	rm -f namgen.bin *.o lex.yy.c y.tab.c y.tab.h data.zip
+
+rclean: clean
+	rm -f namgen
