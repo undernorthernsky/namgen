@@ -125,6 +125,9 @@ static void create_master_include(void)
         SB_APPEND(sb_uninstall, "_uninstall");
     }
     fprintf(f, "\n");
+    sb_append_ch(sb_clean, '\0');
+    sb_append_ch(sb_install, '\0');
+    sb_append_ch(sb_uninstall, '\0');
 
     fprintf(f, "clean: %s\n", sb_cstring(sb_clean));
     fprintf(f, "install: %s\n", sb_cstring(sb_install));
