@@ -39,10 +39,10 @@ static const char* get_target_install_subdir(target_entry *e)
       return e->dest_sub_path;
    if (e->type == TYPE_PROGRAM)
    {
-      return "bin/";
+      return "bin";
    } else if (e->type == TYPE_LIBRARY)
    {
-      return "lib/";
+      return "lib";
    }
    return "";
 }
@@ -94,7 +94,10 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
       sb_append_str(sb, "/");
       sb_append_str(sb, dep->ptr->target_name);
       sb_append_str(include, " -I");
-      sb_append_str(include, dep->ptr->path_from_top);
+      if (dep->ptr->export_include)
+         sb_append_str(include, dep->ptr->export_include);
+      else
+         sb_append_str(include, dep->ptr->path_from_top);
       char *p = sb_make_cstring(sb);
       ngt_set_string(dict_dep, "DEPENDENCY", p);
       free(p);
@@ -141,9 +144,15 @@ static ngt_dictionary* dict_for_library_decl(target_entry *target)
    ngt_set_string(dict, "TARGET_NAME", target->target_name);
    do_shared_keys(target, dict);
    do_dependencies(target, dict);
-   if (!(target->other_flags & SKIP_SHARED_MASK))
+   if (target->other_flags & SKIP_SHARED_MASK)
    {
-      ngt_set_string(dict, "BUILD_THIS_AS_SHARED", "$(LIB_BUILD_SHARED)");
+      ngt_set_string(dict, "STATIC_OR_SHARED", "-static");
+   } else if (target->other_flags & SKIP_STATIC_MASK)
+   {
+      ngt_set_string(dict, "STATIC_OR_SHARED", "-shared");
+   } else
+   {
+      ngt_set_string(dict, "STATIC_OR_SHARED", "$(LIB_BUILD_SHARED)");
    }
    if (target->lib_version_num)
    {

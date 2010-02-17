@@ -23,6 +23,7 @@ typedef struct depend_list_entry {
 #define SKIP_INSTALL_MASK 0x1
 #define SKIP_SHARED_MASK  0x2
 #define VERSION_INFO_SCHEMA 0x4
+#define SKIP_STATIC_MASK 0x8
 
 typedef struct target_entry {
    target_type type;
@@ -37,6 +38,7 @@ typedef struct target_entry {
    char        *lib_version_num;
    char        *libs;
    char        *dest_sub_path;
+   char        *export_include;
    depend_list_entry *dependencies;
 
    int         other_flags;
@@ -66,8 +68,11 @@ typedef struct module_entry {
 extern target_entry* target_entry_new(target_type t, const char *name);
 extern void target_add_dependency(target_entry *e, const char *s);
 
+extern void target_set_destdir_path(target_entry *e, const char *sub_path);
+
 extern void target_set_skip_install(target_entry *e, const char *s);
 extern void target_set_skip_shared(target_entry *e, const char *s);
+extern void target_set_skip_static(target_entry *e, const char *s);
 
 extern module_entry* module_entry_new(const char *name, char *directory, char *path_from_top);
 extern target_entry* module_add_target(target_entry *e);

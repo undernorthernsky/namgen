@@ -29,7 +29,7 @@ TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 {{THIS_DIR}}_TARGETS += {{TARGET_NAME}}$(EXE_EXT)
 # link the program from the object files
 {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}})
-	@$(LINK_CXX) -o $@ $(BIN_LINK_FLAGS) $(LF_TGT) $^
+	@$(LINK_CXX) -o $@ $^ $(BIN_LINK_FLAGS) $(LDFLAGS) $(LF_TGT)
 
 # dependencies of this program
 # this statement causes linking with the requested libaries
@@ -38,12 +38,12 @@ TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 {{/DEPENDS}}
 
 # should this program be installed into DESTDIR?
-{{#IF_INSTALL}}$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}$(EXE_EXT): {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
+{{#IF_INSTALL}}$(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}$(EXE_EXT): {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 	$(INSTALL_CMD) $< $(DESTDIR)/{{DEST_SUB}}
 
 # add this program to the 'install' goals for this directory
-{{THIS_DIR}}_TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}$(EXE_EXT)
-{{#DEPENDS_INSTALL}}$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}$(EXE_EXT): $(DESTDIR)/{{DEP_INSTALL_SUBPATH}}{{DEP_NAME}}.la
+{{THIS_DIR}}_TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}$(EXE_EXT)
+{{#DEPENDS_INSTALL}}$(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}$(EXE_EXT): $(DESTDIR)/{{DEP_INSTALL_SUBPATH}}/{{DEP_NAME}}.la
 {{/DEPENDS_INSTALL}}
 
 {{/IF_INSTALL}}{{/PROGRAM_RULES}}
@@ -57,12 +57,12 @@ EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}} := $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_N
 # this will contain --rpath ... (which determines if the shared version is built)
 # 'skip-shared = true' disables shared building on a per-library base
 # shared libs can also be deactivated globally
-LINK_FLAGS_{{TARGET_NAME}} := {{BUILD_THIS_AS_SHARED}}
+LINK_FLAGS_{{TARGET_NAME}} := -rpath $(DESTDIR)/{{DEST_SUB}} {{STATIC_OR_SHARED}}
 
 TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 {{THIS_DIR}}_TARGETS += {{TARGET_NAME}}.la
 {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}})
-	@$(LINK_CXX) -o $@ $(LINK_FLAGS_{{TARGET_NAME}}) $(LF_TGT) $^
+	@$(LINK_CXX) -o $@ $^ $(LINK_FLAGS_{{TARGET_NAME}}) $(LDFLAGS) $(LF_TGT)
 
 # dependencies
 {{#DEPENDS}}{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: {{DEPENDENCY}}.la
@@ -70,11 +70,11 @@ TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 
 # FIXME: handle .dll for WIN32, what about static libs? never installed?
 {{#IF_INSTALL}}# install into DESTDIR
-$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}.la: {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
+$(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}.la: {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 	$(INSTALL_CMD) $< $(DESTDIR)/{{DEST_SUB}}
 
-{{THIS_DIR}}_TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}.la
-{{#DEPENDS_INSTALL}}$(DESTDIR)/{{DEST_SUB}}{{TARGET_NAME}}.la: $(DESTDIR)/{{DEP_INSTALL_SUBPATH}}{{DEP_NAME}}.la
+{{THIS_DIR}}_TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}.la
+{{#DEPENDS_INSTALL}}$(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}.la: $(DESTDIR)/{{DEP_INSTALL_SUBPATH}}/{{DEP_NAME}}.la
 {{/DEPENDS_INSTALL}}
 {{/IF_INSTALL}}{{/LIBRARY_RULES}}
 

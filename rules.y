@@ -44,8 +44,9 @@ int yywrap()
 %start declarations
 %token PROGRAM LIBRARY WORKER
 SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
-TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
+SKIP_STATIC TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
 VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE COMMENT_CHAR
+EXPORT_INC
 
 %%
 declarations:
@@ -114,14 +115,16 @@ def_statements:
 def_statement:
                  src_statement ;
                  | depends_statement ;
-                 | destdir_statement { current_target->dest_sub_path = strdup($1); }
+                 | destdir_statement { target_set_destdir_path(current_target, $1); }
                  | flags_statement ; 
                  | ld_flags_statement ;
                  | libs_statement ;
                  | version_num_statement ;
                  | add_objects_statement;
+                 | export_inc_statement ;
                  | skip_install_statement { target_set_skip_install(current_target, $1); }
                  | skip_shared_statement { target_set_skip_shared(current_target, $1); }
+                 | skip_static_statement { target_set_skip_static(current_target, $1); }
                  | comment_line ;
 
 src_statement:
@@ -163,12 +166,20 @@ libs_statement:
               LIBS EQUALS { sb_reset(sb); }
               list_of_stuff { current_target->libs = sb_make_cstring(sb); }
 
+export_inc_statement:
+                    EXPORT_INC EQUALS { sb_reset(sb); }
+                    list_of_stuff { current_target->export_include = sb_make_cstring(sb); }
+
 skip_install_statement:
                       SKIP_INSTALL EQUALS true_false
                       { $$ = $3; }
 
 skip_shared_statement:
                      SKIP_SHARED EQUALS true_false
+                     { $$ = $3; }
+
+skip_static_statement:
+                     SKIP_STATIC EQUALS true_false
                      { $$ = $3; }
 
 true_false:

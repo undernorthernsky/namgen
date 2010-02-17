@@ -90,6 +90,7 @@ static void target_entry_free(target_entry *e)
    SF(e->libs);
    SF(e->dest_sub_path);
    SF(e->lib_version_num);
+   SF(e->export_include);
    depend_list_entry *a, *b;
    a = e->dependencies;
    while (a)
@@ -147,10 +148,13 @@ static target_entry* libtarget_for_worker(target_entry *prog)
     SC(link_flags);
     SC(libs);
     SC(lib_version_num);
-    lib->dest_sub_path = strdup("lib/embrace/");
+    SC(export_include);
+    lib->dest_sub_path = strdup("lib/embrace");
 
     lib->dependencies = depend_list_copy(prog->dependencies);
     lib->other_flags = prog->other_flags;
+    lib->other_flags &= ~SKIP_SHARED_MASK;
+    lib->other_flags |= SKIP_STATIC_MASK;
 
     return lib;
 }
@@ -171,8 +175,6 @@ target_entry* module_add_target(target_entry *e)
        ++program_count;
 
        // register a copy as a lib
-       char *name_as_lib = malloc(strlen(e->target_name) + 4);
-       sprintf(name_as_lib, "lib%s", e->target_name);
        // FIXME: name clashes of lib
        module_add_target(libtarget_for_worker(e));
    }
@@ -233,6 +235,16 @@ inline int is_true(const char *true_str)
    return !strcmp(true_str, "true");
 }
 
+void target_set_destdir_path(target_entry *e, const char *sub_path)
+{
+   e->dest_sub_path = strdup(sub_path);
+   int k = strlen(sub_path);
+   if (sub_path[k-1] == '/')
+   {
+      e->dest_sub_path[k-1] = '\0';
+   }
+}
+
 void target_set_skip_install(target_entry *e, const char *true_str)
 {
    if (is_true(true_str))
@@ -243,6 +255,12 @@ void target_set_skip_shared(target_entry *e, const char *true_str)
 {
    if (is_true(true_str))
       e->other_flags |= SKIP_SHARED_MASK;
+}
+
+void target_set_skip_static(target_entry *e, const char *true_str)
+{
+   if (is_true(true_str))
+      e->other_flags |= SKIP_STATIC_MASK;
 }
 
 module_entry* get_module_list(void)
