@@ -108,13 +108,14 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
       char *p = sb_make_cstring(sb);
       ngt_set_string(dict_dep, "DEPENDENCY", p);
       free(p);
+      /*
       if (!(dep->ptr->other_flags & SKIP_INSTALL_MASK))
       {
          ngt_dictionary * dict_dep_install = ngt_dictionary_new();
          ngt_set_string(dict_dep_install, "DEP_INSTALL_SUBPATH", get_target_install_subdir(dep->ptr));
          ngt_set_string(dict_dep_install, "DEP_NAME", dep->ptr->target_name);
          ngt_add_dictionary(dict, "DEPENDS_INSTALL", dict_dep_install, SECTION_VISIBLE);
-      }
+      }*/
       char *depends_what = NULL;
       /* when only building .so or building both .so and .a use DEPENDS_SHARED */
       if ((dep->ptr->other_flags & SKIP_STATIC_MASK) ||
