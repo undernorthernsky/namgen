@@ -5,5 +5,6 @@
 #include "ngtemplate.h"
 
 ngt_dictionary* dict_for_module(module_entry *module);
+void template_cleanup(void);
 
 #endif

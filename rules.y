@@ -46,7 +46,7 @@ int yywrap()
 SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
 SKIP_STATIC TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
 VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE COMMENT_CHAR
-EXPORT_INC
+EXPORT_INC CONVENIENCE_LIB
 
 %%
 declarations:
@@ -125,6 +125,7 @@ def_statement:
                  | skip_install_statement { target_set_skip_install(current_target, $1); }
                  | skip_shared_statement { target_set_skip_shared(current_target, $1); }
                  | skip_static_statement { target_set_skip_static(current_target, $1); }
+                 | convenience_statement { target_set_convencience(current_target, $1); }
                  | comment_line ;
 
 src_statement:
@@ -180,6 +181,10 @@ skip_shared_statement:
 
 skip_static_statement:
                      SKIP_STATIC EQUALS true_false
+                     { $$ = $3; }
+
+convenience_statement:
+                     CONVENIENCE_LIB EQUALS true_false
                      { $$ = $3; }
 
 true_false:

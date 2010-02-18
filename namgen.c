@@ -26,6 +26,7 @@ char *top_dir = NULL;
 
 static int process_module(module_entry *module)
 {
+   DEBUG("Creating %s/makefile\n", module->directory);
    char *output_str = NULL;
    int res = 0;
 
@@ -241,7 +242,8 @@ int main(int argc, char *argv[])
     } else
     {
        fprintf(stderr, "Error: missing %i dependencies\n", missing);
-       exit(1);
+       if (!print_rules)
+          exit(1);
     }
 
     if (print_rules)
@@ -270,6 +272,7 @@ int main(int argc, char *argv[])
 
 work_skipped:
     cleanup_data();
+    template_cleanup();
     if (template)
         ngt_destroy(template);
 

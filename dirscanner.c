@@ -103,7 +103,7 @@ static char* load_verbatim()
    else
       fprintf(stderr, "Failed to find expected VERBATIM section\n");
    free(buff);
-   debug("%s [%s]: found verbatim data\n", __FILE__, __FUNCTION__);
+   DEBUG("%s found verbatim data\n", current_directory);
 
    return v;
 }
@@ -155,7 +155,7 @@ static int process_directory(char * name)
    
    module_entry *module = module_entry_new(current_dir, current_directory, current_dir_path_from_top);
    parse_rules(module);
-   debug("Loaded build.rules from %s\n", current_directory);
+   DEBUG("Loaded build.rules from %s\n", current_directory);
 
 pd_cleanup:
    if (fb)
@@ -174,7 +174,7 @@ int iterate_directories(char * dirpath)
       res = 1;
       goto id_oops;
    }
-   debug("%s [%s]: dir = %s\n", __FILE__, __FUNCTION__, dirpath);
+   DEBUG("%s (%s)\n", __FUNCTION__, dirpath);
    process_directory(dirpath);
 
    DIR *dir;

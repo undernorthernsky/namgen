@@ -13,6 +13,13 @@ extern char *top_dir;
 
 static char *srcdepends_tmpl_char = NULL;
 
+void template_cleanup(void)
+{
+    if (srcdepends_tmpl_char)
+        free(srcdepends_tmpl_char);
+    srcdepends_tmpl_char = NULL;
+}
+
 static char* template_load_cb(const char *name)
 {
     if (!strcmp(name, "src_depends"))
@@ -108,7 +115,14 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
          ngt_set_string(dict_dep_install, "DEP_NAME", dep->ptr->target_name);
          ngt_add_dictionary(dict, "DEPENDS_INSTALL", dict_dep_install, SECTION_VISIBLE);
       }
-      ngt_add_dictionary(dict, "DEPENDS", dict_dep, SECTION_VISIBLE);
+      char *depends_what = NULL;
+      /* when only building .so or building both .so and .a use DEPENDS_SHARED */
+      if ((dep->ptr->other_flags & SKIP_STATIC_MASK) ||
+              ((dep->ptr->other_flags & (SKIP_STATIC_MASK | SKIP_SHARED_MASK | CONVENIENCE_MASK)) == 0))
+              depends_what = "DEPENDS_SHARED";
+      else
+         depends_what = "DEPENDS_STATIC";
+      ngt_add_dictionary(dict, depends_what, dict_dep, SECTION_VISIBLE);
    }
    if (include->pos)
    {
@@ -144,15 +158,27 @@ static ngt_dictionary* dict_for_library_decl(target_entry *target)
    ngt_set_string(dict, "TARGET_NAME", target->target_name);
    do_shared_keys(target, dict);
    do_dependencies(target, dict);
+   stringbuilder *sb = sb_new();
+   sb_append_strf(sb, "-rpath $(DESTDIR)/%s", get_target_install_subdir(target));
    if (target->other_flags & SKIP_SHARED_MASK)
    {
+      /* only static lib => no -rpath */
       ngt_set_string(dict, "STATIC_OR_SHARED", "-static");
    } else if (target->other_flags & SKIP_STATIC_MASK)
    {
-      ngt_set_string(dict, "STATIC_OR_SHARED", "-shared");
+      /* only shared lib, needs -rpath */
+      sb_append_str(sb, " -shared");
+      sb_append_ch(sb, '\0');
+      ngt_set_string(dict, "STATIC_OR_SHARED", sb_cstring(sb));
+   } else if (target->other_flags & CONVENIENCE_MASK)
+   {
+      /* don't set anything: no -rpath, neither -shared nor -static */
+      //DEBUG("%s is a convenience library\n", target->target_name);
    } else
    {
-      ngt_set_string(dict, "STATIC_OR_SHARED", "$(LIB_BUILD_SHARED)");
+      /* build both, needs -rpath */
+      sb_append_ch(sb, '\0');
+      ngt_set_string(dict, "STATIC_OR_SHARED", sb_cstring(sb));
    }
    if (target->lib_version_num)
    {
@@ -166,6 +192,8 @@ static ngt_dictionary* dict_for_library_decl(target_entry *target)
       make_dotted(target->lib_version_num);
       ngt_set_string(dict, "VERSION_NUMBER", target->lib_version_num);
    }
+   if (sb)
+       sb_destroy(sb, 1);
    return dict;
 }
 

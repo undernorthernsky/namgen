@@ -142,6 +142,7 @@ static target_entry* libtarget_for_worker(target_entry *prog)
     sprintf(name_as_lib, "lib%s", prog->target_name);
 
     target_entry *lib = target_entry_new(TYPE_LIBRARY, name_as_lib);
+    free(name_as_lib);
     SC(src);
     SC(extra_obj);
     SC(compile_flags);
@@ -215,7 +216,7 @@ int resolve_all_dependencies(void)
             HASH_FIND_STR(all_targets_hash, de->str, tle);
             if (tle)
             {
-               debug("  Found '%s' dependency: %s\n", te->target_name, de->str);
+               DEBUG("Found '%s' dependency: %s\n", te->target_name, de->str);
                de->ptr = tle->ptr;
             } else
             {
@@ -261,6 +262,17 @@ void target_set_skip_static(target_entry *e, const char *true_str)
 {
    if (is_true(true_str))
       e->other_flags |= SKIP_STATIC_MASK;
+}
+
+void target_set_convencience(target_entry *e, const char *true_str)
+{
+   if (is_true(true_str))
+   {
+      e->other_flags |= SKIP_INSTALL_MASK;
+      e->other_flags &= ~SKIP_SHARED_MASK;
+      e->other_flags &= ~SKIP_STATIC_MASK;
+      e->other_flags |= CONVENIENCE_MASK;
+   }
 }
 
 module_entry* get_module_list(void)

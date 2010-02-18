@@ -24,18 +24,25 @@ endif
 {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): LF_TGT := {{TARGET_SPECIFIC_LF}}
 EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}} := {{EXTRA_OBJ_EXPR}}
 
+# dependencies of this program
+# this statement causes linking with the requested libaries
+# defaults to using the shared-lib (if available)
+{{#DEPENDS_SHARED}}{{THIS_DIR}}_{{TARGET_NAME}}_LIBS += {{DEPENDENCY}}.la
+{{/DEPENDS_SHARED}}
+{{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy: $({{THIS_DIR}}_{{TARGET_NAME}}_LIBS)
+	@if [ ! -e $@ ]; then touch $@; fi
+
+{{#DEPENDS_STATIC}}{{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS += {{DEPENDENCY}}.la
+{{/DEPENDS_STATIC}}
+
+{{THIS_DIR}}_{{TARGET_NAME}}_ALL_LIBS = $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $({{THIS_DIR}}_{{TARGET_NAME}}_LIBS) 
+
 # add this program to the global 'make build' goals
 TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 {{THIS_DIR}}_TARGETS += {{TARGET_NAME}}$(EXE_EXT)
 # link the program from the object files
-{{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}})
-	@$(LINK_CXX) -o $@ $^ $(BIN_LINK_FLAGS) $(LDFLAGS) $(LF_TGT)
-
-# dependencies of this program
-# this statement causes linking with the requested libaries
-# defaults to using the shared-lib (if available)
-{{#DEPENDS}}{{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): {{DEPENDENCY}}.la
-{{/DEPENDS}}
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): {{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}})
+	@$(LINK_CXX) -o $@ $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $({{THIS_DIR}}_{{TARGET_NAME}}_ALL_LIBS) $(BIN_LINK_FLAGS) $(LDFLAGS) $(LF_TGT)
 
 # should this program be installed into DESTDIR?
 {{#IF_INSTALL}}$(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}$(EXE_EXT): {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
@@ -43,8 +50,6 @@ TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 
 # add this program to the 'install' goals for this directory
 {{THIS_DIR}}_TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}$(EXE_EXT)
-{{#DEPENDS_INSTALL}}$(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}$(EXE_EXT): $(DESTDIR)/{{DEP_INSTALL_SUBPATH}}/{{DEP_NAME}}.la
-{{/DEPENDS_INSTALL}}
 
 {{/IF_INSTALL}}{{/PROGRAM_RULES}}
 {{#LIBRARY_RULES}}
@@ -54,28 +59,32 @@ TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}} := {{EXTRA_OBJ_EXPR}}
 EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}} := $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}}:%.o=%.lo)
 
-# this will contain --rpath ... (which determines if the shared version is built)
-# 'skip-shared = true' disables shared building on a per-library base
-# shared libs can also be deactivated globally
-LINK_FLAGS_{{TARGET_NAME}} := -rpath $(DESTDIR)/{{DEST_SUB}} {{STATIC_OR_SHARED}}
+LINK_FLAGS_{{TARGET_NAME}} := {{STATIC_OR_SHARED}}
+
+# dependencies
+{{#DEPENDS_SHARED}}{{THIS_DIR}}_{{TARGET_NAME}}_LIBS += {{DEPENDENCY}}.la
+{{/DEPENDS_SHARED}}
+{{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy: $({{THIS_DIR}}_{{TARGET_NAME}}_LIBS)
+	@if [ ! -e $@ ]; then touch $@; fi
+
+{{#DEPENDS_STATIC}}{{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS += {{DEPENDENCY}}.la
+{{/DEPENDS_STATIC}}
+
+{{THIS_DIR}}_{{TARGET_NAME}}_ALL_LIBS = $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $({{THIS_DIR}}_{{TARGET_NAME}}_LIBS)
 
 TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 {{THIS_DIR}}_TARGETS += {{TARGET_NAME}}.la
-{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}})
-	@$(LINK_CXX) -o $@ $^ $(LINK_FLAGS_{{TARGET_NAME}}) $(LDFLAGS) $(LF_TGT)
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: {{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}})
+	@$(LINK_CXX) -o $@ $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $({{THIS_DIR}}_{{TARGET_NAME}}_ALL_LIBS) $(LINK_FLAGS_{{TARGET_NAME}}) $(LDFLAGS) $(LF_TGT)
 
-# dependencies
-{{#DEPENDS}}{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: {{DEPENDENCY}}.la
-{{/DEPENDS}}
+{{#DEPENDS_STATIC}}{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: {{DEPENDENCY}}.la
+{{/DEPENDS_STATIC}}
 
-# FIXME: handle .dll for WIN32, what about static libs? never installed?
 {{#IF_INSTALL}}# install into DESTDIR
 $(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}.la: {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 	$(INSTALL_CMD) $< $(DESTDIR)/{{DEST_SUB}}
 
 {{THIS_DIR}}_TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}.la
-{{#DEPENDS_INSTALL}}$(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}.la: $(DESTDIR)/{{DEP_INSTALL_SUBPATH}}/{{DEP_NAME}}.la
-{{/DEPENDS_INSTALL}}
 {{/IF_INSTALL}}{{/LIBRARY_RULES}}
 
 {{THIS_DIR}}_install: $({{THIS_DIR}}_TARGETS_TO_INSTALL)

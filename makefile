@@ -20,7 +20,7 @@ endif
 
 CC      := gcc
 INC     := -Iinclude
-FLAGS   := -Wall -pedantic --std=c99 -Os
+FLAGS   := -Wall --std=c99 -Os
 DEFS    := $(DEBUG_FLAG) $(ZIP_FLAG) -D_GNU_SOURCE -DCOMPILED_IN_TEMPLATE_FILE=\"$(TMPL_1)\"
 CFLAGS  := $(INC) $(FLAGS) $(DEFS)
 LDFLAGS := -g -rdynamic -Llib -lngtemplate -luseful -ll $(ZIP_LIBS)

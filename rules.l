@@ -42,6 +42,7 @@ dest-dir                return DESTDIR;
 skip-install            return SKIP_INSTALL;
 skip-shared             return SKIP_SHARED;
 skip-static             return SKIP_STATIC;
+convenience             return CONVENIENCE_LIB;
 version-info            return VERSION_INFO;
 version-number          return VERSION_NUMBER;
 true                    return TRUE_VALUE;

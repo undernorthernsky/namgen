@@ -21,7 +21,7 @@ extern int io_init(const char *argv0)
         return 1;
     }
     else
-        debug("Loaded zip data from %s\n", argv0);
+        DEBUG("Loaded zip data from %s\n", argv0);
     return 0;
 }
 
@@ -54,7 +54,7 @@ static char* load_file_from_zip(const char *filename)
     memset(buff, 0, len + 1);
     zzip_file_read(file, buff, len);
     zzip_file_close(file);
-    debug("loaded file: %s [%i bytes]\n", filename, stat.st_size);
+    DEBUG("loaded file: %s [%i bytes]\n", filename, stat.st_size);
 
     return buff;
 }

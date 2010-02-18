@@ -24,6 +24,7 @@ typedef struct depend_list_entry {
 #define SKIP_SHARED_MASK  0x2
 #define VERSION_INFO_SCHEMA 0x4
 #define SKIP_STATIC_MASK 0x8
+#define CONVENIENCE_MASK 0x10
 
 typedef struct target_entry {
    target_type type;
@@ -73,6 +74,7 @@ extern void target_set_destdir_path(target_entry *e, const char *sub_path);
 extern void target_set_skip_install(target_entry *e, const char *s);
 extern void target_set_skip_shared(target_entry *e, const char *s);
 extern void target_set_skip_static(target_entry *e, const char *s);
+extern void target_set_convencience(target_entry *e, const char *s);
 
 extern module_entry* module_entry_new(const char *name, char *directory, char *path_from_top);
 extern target_entry* module_add_target(target_entry *e);
