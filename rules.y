@@ -45,8 +45,8 @@ int yywrap()
 %token PROGRAM LIBRARY WORKER
 SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
 SKIP_STATIC TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
-VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE COMMENT_CHAR
-EXPORT_INC CONVENIENCE_LIB
+VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE
+EXPORT_INC CONVENIENCE_LIB OCOMMENT ECOMMENT
 
 %%
 declarations:
@@ -91,11 +91,32 @@ worker_def:
            }
 
 comment_line:
-            COMMENT_CHAR comment_data
+            OCOMMENT comment_data ECOMMENT
             ;
 
 comment_data:
-            | comment_data word_variable_filename_stuff
+            | comment_data comment_blub
+            ;
+
+comment_blub:
+            SRC
+            | DEPENDS
+            | FLAGS
+            | LIBS
+            | LDFLAGS
+            | ADD_OBJECTS
+            | EXPORT_INC
+            | DESTDIR
+            | SKIP_INSTALL
+            | SKIP_SHARED
+            | SKIP_STATIC
+            | CONVENIENCE_LIB
+            | VERSION_INFO
+            | VERSION_NUMBER
+            | TRUE_VALUE
+            | FALSE_VALUE
+            | EQUALS
+            | word_variable_filename_stuff
             ;
 
 quoted_name:

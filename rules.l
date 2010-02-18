@@ -54,7 +54,8 @@ VERBATIM                abort_parsing_now(); return EOF;
 \"                      return QUOTE;
 \{                      return OBRACE;
 \}                      return EBRACE;
-#                       return COMMENT_CHAR;
+\/\*                      return OCOMMENT;
+\*\/                      return ECOMMENT;
 
 [0-9]+\.[0-9]+\.[0-9]+  yylval = strdup(yytext); return THREE_NUMBERS;
 [a-zA-Z0-9_\-]+         yylval = strdup(yytext); return WORD;
