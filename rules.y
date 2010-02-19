@@ -46,7 +46,7 @@ int yywrap()
 SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
 SKIP_STATIC TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
 VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE
-EXPORT_INC CONVENIENCE_LIB OCOMMENT ECOMMENT
+EXPORT_INC CONVENIENCE_LIB OCOMMENT ECOMMENT SKIP_IF
 
 %%
 declarations:
@@ -54,7 +54,7 @@ declarations:
            ;
 
 declaration:
-           program_def | library_def | worker_def | comment_line
+           program_def | library_def | worker_def | comment_line | skip_condition
            ;
 
 program_def:
@@ -89,6 +89,8 @@ worker_def:
                module_add_target(current_target);
                current_target = NULL;
            }
+
+skip_condition: SKIP_IF WORD { module_set_skip_condition($2); }
 
 comment_line:
             OCOMMENT comment_data ECOMMENT

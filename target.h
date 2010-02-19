@@ -60,6 +60,7 @@ typedef struct module_entry {
    char         *directory;
    char         *path_from_top;
    char         *verbatim;
+   char         *skip_condition;
 
    struct module_entry *next;
 } module_entry;
@@ -77,6 +78,7 @@ extern void target_set_skip_static(target_entry *e, const char *s);
 extern void target_set_convencience(target_entry *e, const char *s);
 
 extern module_entry* module_entry_new(const char *name, char *directory, char *path_from_top);
+extern void module_set_skip_condition(char *s);
 extern target_entry* module_add_target(target_entry *e);
 
 //extern void target_entry_free(target_entry *e);

@@ -55,6 +55,11 @@ module_entry* module_entry_new(const char *name, char *directory, char *pft)
    return e;
 }
 
+void module_set_skip_condition(char *s)
+{
+    current_module->skip_condition = s;
+}
+
 target_entry* target_entry_new(target_type t, const char *name)
 {
    target_entry *e = malloc(sizeof(target_entry));
@@ -117,6 +122,7 @@ static void module_entry_free(module_entry *e)
    SF(e->directory);
    SF(e->path_from_top);
    SF(e->verbatim);
+   SF(e->skip_condition);
    free(e);
 }
 

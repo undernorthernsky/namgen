@@ -48,6 +48,7 @@ version-number          return VERSION_NUMBER;
 true                    return TRUE_VALUE;
 false                   return FALSE_VALUE;
 VERBATIM                abort_parsing_now(); return EOF; 
+skip-if                 return SKIP_IF;
 
 !                       return EXPR_MARK;
 =                       return EQUALS;
