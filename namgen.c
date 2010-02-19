@@ -144,6 +144,40 @@ static void create_master_include(void)
     fclose(f);
 }
 
+static void safe_export_file(const char *name, int make_executable)
+{
+    // assume that we are back in top_dir
+
+    // don't overwrite if already exists
+    if (!access(name, F_OK))
+    {
+        DEBUG("File %s exists, skipping\n", name);
+        return;
+    }
+    FILE *f = fopen(name, "w");
+    if (!f)
+    {
+        fprintf(stderr, "Error opening file %s for writing\n", name);
+        return;
+    }
+    char *data = load_file(name);
+    if (data)
+    {
+        fprintf(f, "%s", data);
+    } else
+    {
+        fprintf(stderr, "Error loading src file %s\n", name);
+    }
+    fclose(f);
+    if (make_executable)
+    {
+        chmod(name, S_IRWXU | S_IRWXG | S_IROTH);
+    }
+    DEBUG("Created base-file %s\n", name);
+    if (data)
+        free(data);
+}
+
 static void print_loaded_rules(void)
 {
    module_entry *modules, *me;
@@ -267,6 +301,8 @@ int main(int argc, char *argv[])
     }
 
     create_master_include();
+    safe_export_file("makefile", 0);
+    safe_export_file("install", 1);
 
 work_skipped:
     cleanup_data();

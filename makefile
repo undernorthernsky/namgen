@@ -1,16 +1,10 @@
-USE_ZIP := 1
 DEBUG := 1
-TEMPLATES := $(wildcard *.tmpl)
+ZIP_DATA := $(wildcard zip_data/*)
 
-ifdef USE_ZIP
 TMPL_1 := sub_make.tmpl
 ZIP_FLAG := -DUSE_ZIP
 ZIP_LIBS := -lzzip -lz
 TARGET := namgen
-else
-TMPL_1 := $(shell pwd)/sub_make.tmpl
-TARGET := namgen.bin
-endif
 
 ifdef DEBUG
 DEBUG_FLAG := -ggdb
@@ -49,8 +43,8 @@ namgen: namgen.bin data.zip
 
 lex.yy.o: lex.yy.c y.tab.h
 
-data.zip: $(TEMPLATES) usage.txt documentation.txt
-	zip $@ $+
+data.zip: $(ZIP_DATA)
+	(cd zip_data && zip ../$@ *)
 
 $(NAMGEN_OBJ): lib/libngtemplate.a
 lib/libngtemplate.a:

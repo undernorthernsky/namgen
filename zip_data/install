@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# An install/uninstall utility
+
+# libtool insists on relinking on install...
+# /usr/bin/install can't handle .la -> .so, symlinks, .a, ...
+# ... thus the need for this script
+
+#DEBUG=echo
+
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+    echo USAGE: $0 [-u] file-to-install dest-dir
+    exit 1
+fi
+
+mode=0
+if [ "$1" = "-u" ]; then 
+    mode=1
+    shift
+else
+    src=$1
+    dest=$2
+fi
+
+function has_extension() {
+    local s=$1
+    local e=$2
+    if [ "${s##*\.}" = "$e" ]; then return 1; fi
+    return 0
+}
+
+win32=0
+
+# install mode
+if [ $mode -eq 0 ]; then
+
+if [ ! -e $src ]; then
+    echo "SRC $src does not exist!"
+    exit 1
+fi
+if [ ! -d $dest ]; then
+    mkdir $dest || exit 1
+fi
+
+d=$(dirname $src)
+b=$(basename $src)
+
+if [ "${src##*.}" = "la" ]; then
+    eval `grep -e '^dlname=' -e '^library_names=' -e '^old_library=' $src`
+    if [ -n "$dlname" ]; then
+        has_extension $dlname dll
+        if [ $? -eq 1 ]; then
+            win32=1
+            dbin=$(dirname $dest)/bin
+            $DEBUG cp $d/.libs/$dlname $dbin
+        else
+            # ignore this, done through library_names
+            true
+        fi
+    fi
+    if [ -n "$library_names" ]; then
+        if [ $win32 -eq 0 ]; then
+            libs_array=( $library_names )
+            a_len=${#libs_array[@]}
+            $DEBUG cp $d/.libs/${libs_array[0]} $dest
+            for ((i=1;i<a_len;i++)); do
+                $DEBUG rm -f $dest/${libs_array[$i]}
+                $DEBUG ln -s $dest/${libs_array[0]} $dest/${libs_array[$i]}
+            done
+        else
+            # probaly only a single file: libXXX.dll.a
+            $DEBUG cp $d/.libs/$library_names $dest
+        fi
+    fi
+    if [ -n "$old_library" ]; then
+        $DEBUG cp $d/.libs/$old_library $dest
+    fi
+    $DEBUG cp $src $dest
+else
+    if [ -e $d/.libs/$b ]; then
+        $DEBUG cp $d/.libs/$b $dest
+    else
+        $DEBUG cp $d/$b $dest
+    fi
+fi
+
+# uninstall mode
+else
+    while [ $# -gt 0 ]; do
+        has_extension $1 "la"
+        if [ $? -eq 0 ]; then
+            $DEBUG rm -f $1
+        else
+            eval `grep -e '^dlname=' -e '^library_names=' -e '^old_library=' $1`
+            d=$(dirname $1)
+            if [ -n "$dlname" ]; then
+                has_extension $dlname dll
+                if [ $? -eq 1 ]; then
+                    dbin=$(dirname $(dirname $1))/bin
+                    $DEBUG rm -f $dbin/$dlname
+                fi
+            fi
+            if [ -n "$library_names" ]; then
+                for x in $library_names; do
+                    $DEBUG rm -f $d/$x
+                done
+            fi
+            if [ -n "$old_library" ]; then
+                $DEBUG rm -f $d/$old_library
+            fi
+            $DEBUG rm -f $1
+        fi
+        shift
+    done
+fi
