@@ -6,11 +6,7 @@
 
   -static, -all-static, -static-libtool-libs, -shared, -no-install
 
-  Maybe add 'skip-static = true' as well?
-
-* installing of binaries
-  * if -static then the actual target is x/y and not x/.libs/y
-  * win32 not tested
+  Maybe add 'skip-static = true' as well? [done]
 
 * rethink 'ld-flags' vs 'libs'
   'libs' isn't used at all at this time
@@ -20,3 +16,4 @@
   this is to declare variables in a VERBATIM section and use those
 
 * custom production (sed xxx.cpp > yyy.cpp)
+  cleanup files-per-module!

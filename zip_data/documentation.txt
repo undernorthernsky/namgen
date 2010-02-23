@@ -35,19 +35,21 @@ Furthermore in the top-level directory the file 'makefile.dirs' will
 be created; the purpose is to include all sub-makefiles.
 
 If the master-makefile does not exist, it will be created as well.
-NOTE: not implemented
 
 
-= Descriptor language =
+= A quick example =
 
-The file 'build.rules' can contain an arbirtray number of target
+Any file 'build.rules' can contain an arbitrary number of target
 descriptions; at this time this can be either a program or a library.
+
+In this case there would be only a single directory and one build
+descriptor file.
 
 -- Example: build.rules --
 program "ProjectA" {
     src = *.cpp
     depends = libprjb
-    libs = -lz
+    ld-flags = -lz
 }
 
 library "libprjb" {
@@ -56,24 +58,74 @@ library "libprjb" {
 }
 -- end of build.rules --
 
+These rules would result in the following pseudo-make rules:
 
-* Which source code files [required]
+SRC_A = $(wildcard *.cpp)
+OBJ_A = $(SRC_A:%.cpp=%.o)
+SRC_B = $(wildcard *.cxx)
+OBJ_B = $(SRC_B:%.cxx=%.o)
+
+foreach o in $(OBJ_B):
+   add -DUSE_FEATURE_X to CXXFLAGS
+
+libprjb: $(OBJ_B)
+   link $@ $^
+
+ProjectA: $(OBJ_A) libprjb
+   link $@ $^ -lz
+
+
+= Descriptor language =
+
+
+* Which source code files [mostly-required]
 
 src = *.cpp
 src = foo.cpp bar.cpp blub.cpp
+src = $(A_MAKE_VARIABLE)
+
+FIXME: ! vs. path-relative-to-build.rules
+
+
+* Additional object files [optional]
+
+extra-obj = foo.o bla.o
+
+There may be situations when a single source/object file is used in
+multiple targets; in this case you should always refer to the compiled
+objects. Compiling the same file multiple times confuses the dependency
+management.
+
+This also means that you *cannot* compile a single file with different
+C[XX]FLAGS for different targets.
+
+'extra-obj' supports the same value-syntax as 'src'.
+
 
 * Depend on other targets [optional]
 
 depends = foo bar baz
+
+The dependency can only be a library; you only have to to
+use the name, there is no need to give relative pathes to the
+actual library directory.
+
+Note: As a corollary this means that library (and program) names
+have to be unique!
+
+The depending target will be linked against all dependencies; furthermore
+the path to each dependency will be added as -Isome/path to the compile
+flags when compiling the corresponding objects. [see 'export-inc']
+
+If a dependency exists as both a static and a shared library the latter
+will be used.
+
 
 * Additional compiler/linker flags [optional]
 
 flags = -I/opt/something/else -D_GNU_SOURCE
 ld-flags = -Wl,-Bsymbolic
 
-* External libraries [optional]
-
-libs = -lreadline -lz
 
 * Other switches [optional]
 
@@ -82,6 +134,26 @@ skip-install = true
 
 Only build a static library version:
 skip-shared = true
+
+Only build a shared library version:
+skip-static = true
+
+Shared-library version number
+version-info = x.y.z
+version-number = x.y.z
+
+See: http://www.gnu.org/software/libtool/manual/html_node/Link-mode.html
+
+
+FIXME:
+
+dest-dir = ...
+export-inc = ...
+convenience = true
+
+skip-if XXX
+
+VERBATIM section
 
 
 = Crosscompiling with mingw =

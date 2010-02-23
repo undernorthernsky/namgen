@@ -7,3 +7,4 @@ Flags are:
     -a directory : add a non-subdir directory to the search list
     -H           : show full documentation
     -p           : print parsed rules information to stdout and exit
+    -d           : namgen debug output
