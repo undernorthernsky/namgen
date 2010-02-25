@@ -42,7 +42,7 @@ int yywrap()
 %}
 
 %start declarations
-%token PROGRAM LIBRARY WORKER
+%token PROGRAM LIBRARY WORKER COMMAND
 SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
 SKIP_STATIC TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
 VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE
@@ -145,6 +145,7 @@ def_statement:
                  | version_num_statement ;
                  | add_objects_statement;
                  | export_inc_statement ;
+                 | command_statement ;
                  | skip_install_statement { target_set_skip_install(current_target, $1); }
                  | skip_shared_statement { target_set_skip_shared(current_target, $1); }
                  | skip_static_statement { target_set_skip_static(current_target, $1); }
@@ -159,6 +160,9 @@ add_objects_statement:
              ADD_OBJECTS EQUALS { src_gatherer_reset(); }
              list_of_src_expr { current_target->extra_obj = src_gatherer_get_result(); }
 
+command_statement:
+                 COMMAND EQUALS word_variable_filename_stuff
+                 { current_target->cmd = $3; }
 
 depends_statement:
                  DEPENDS EQUALS list_of_depends

@@ -93,6 +93,7 @@ static void target_entry_free(target_entry *e)
    SF(e->compile_flags);
    SF(e->link_flags);
    SF(e->libs);
+   SF(e->cmd);
    SF(e->dest_sub_path);
    SF(e->lib_version_num);
    SF(e->export_include);
@@ -154,6 +155,7 @@ static target_entry* libtarget_for_worker(target_entry *prog)
     SC(compile_flags);
     SC(link_flags);
     SC(libs);
+    SC(cmd);
     SC(lib_version_num);
     SC(export_include);
     lib->dest_sub_path = strdup("lib/embrace");

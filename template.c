@@ -85,6 +85,15 @@ static void do_shared_keys(target_entry *target, ngt_dictionary *dict)
            ngt_set_string(dict, "LINK_CMD", "LINK_CC"); 
        }
    }
+   if (target->cmd) {
+       if (strstr(target->cmd, "g++"))
+          ngt_set_string(dict, "LINK_CMD", "LINK_CXX");
+       else if (strstr(target->cmd, "gcc"))
+          ngt_set_string(dict, "LINK_CMD", "LINK_CC");
+       else
+          fprintf(stderr, "Warning: '%s' could not guess LINK_CMD for command: %s\n",
+                  target->target_name, target->cmd);
+   }
    if (target->extra_obj)
    {
        ngt_set_string(dict, "EXTRA_OBJ_EXPR", target->extra_obj);

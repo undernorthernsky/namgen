@@ -32,6 +32,7 @@ program                 return PROGRAM;
 library                 return LIBRARY;
 worker                  return WORKER;
 src                     return SRC;
+cmd                     return COMMAND;
 depends                 return DEPENDS; 
 flags                   return FLAGS;
 libs                    return LIBS;
@@ -62,7 +63,7 @@ skip-if                 return SKIP_IF;
 [a-zA-Z0-9_\-]+         yylval = strdup(yytext); return WORD;
 [a-zA-Z0-9\/\._\-]+     yylval = strdup(yytext); return FILENAME;
 [a-zA-Z0-9_\-\*\.]+     yylval = strdup(yytext); return WILDCARD;
-[a-zA-Z0-9\/\.,:_\-]+   yylval = strdup(yytext); return STUFF;
+[a-zA-Z0-9\/\.,:_\-\+]+   yylval = strdup(yytext); return STUFF;
 $\([a-zA-Z0-9_ ]+\)     yylval = strdup(yytext); return VARIABLE;
 
 \n                      /* igore newlines */; 

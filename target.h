@@ -38,6 +38,7 @@ typedef struct target_entry {
    char        *link_flags;
    char        *lib_version_num;
    char        *libs;
+   char        *cmd;
    char        *dest_sub_path;
    char        *export_include;
    depend_list_entry *dependencies;
