@@ -131,7 +131,7 @@ static void parse_rules(module_entry *module)
    yylex_destroy();
 }
 
-static int process_directory(char * name)
+static int process_directory(char * name, int work_mode)
 {
    int res = 0; 
    char *current_dir = NULL;
@@ -149,6 +149,12 @@ static int process_directory(char * name)
       res = 1;
       goto pd_cleanup;
    }
+   if (work_mode == -1) {
+      if (!access("makefile", R_OK)) {
+        unlink("makefile");
+      }
+      goto pd_cleanup;
+   }
    current_directory = get_cwd();
    current_dir_path_from_top = get_path_from_top(top_dir, current_directory);
    src_gatherer_setup(current_dir_path_from_top);
@@ -163,7 +169,7 @@ pd_cleanup:
    return res;
 }
 
-int iterate_directories(char * dirpath)
+int iterate_directories(char * dirpath, int work_mode)
 {
    char *old_pwd = NULL;
    int res = 0;
@@ -175,7 +181,7 @@ int iterate_directories(char * dirpath)
       goto id_oops;
    }
    DEBUG("%s (%s)\n", __FUNCTION__, dirpath);
-   process_directory(dirpath);
+   process_directory(dirpath, work_mode);
 
    DIR *dir;
    struct dirent *entry;
@@ -192,7 +198,7 @@ int iterate_directories(char * dirpath)
       {
          if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, ".."))
             continue;
-         iterate_directories(entry->d_name);
+         iterate_directories(entry->d_name, work_mode);
       }
    }
 

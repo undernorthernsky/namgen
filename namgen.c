@@ -203,12 +203,14 @@ int main(int argc, char *argv[])
 {
     int c, opt_idx;
     int print_rules = 0;
+    int work_mode = 1;
     static struct option long_opts[] = {
         {"add-dir",  1, 0, 'a'},
         {"print",    0, 0, 'p'},
         {"help",     0, 0, 'h'},
         {"show-doc", 0, 0, 'H'},
         {"debug",    0, 0, 'd'},
+        {"clean",    0, 0, 'C'},
         {0, 0, 0, 0}
     };
     charp_list_entry *additional_dir_list_head = NULL; 
@@ -218,7 +220,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    while ((c = getopt_long(argc, argv, "a:dph?H", long_opts, &opt_idx)) != -1) {
+    while ((c = getopt_long(argc, argv, "a:dpCh?H", long_opts, &opt_idx)) != -1) {
         switch(c) {
             case 'a':
                 LL_APPEND(additional_dir_list_head, make_list_entry(optarg));
@@ -228,6 +230,9 @@ int main(int argc, char *argv[])
                 break;
             case 'd':
                 set_debug_on(1);
+                break;
+            case 'C':
+                work_mode = -1;
                 break;
             case 'h':
             case '?':
@@ -248,13 +253,13 @@ int main(int argc, char *argv[])
     
     top_dir = getenv("PWD"); 
 
-    iterate_directories(top_dir);
+    iterate_directories(top_dir, work_mode);
     if (additional_dir_list_head)
     {
         charp_list_entry *e, *n;
         LL_FOREACH(additional_dir_list_head, e)
         {
-            iterate_directories(e->dir);
+            iterate_directories(e->dir, work_mode);
         }
 
         // cleanup
@@ -264,6 +269,22 @@ int main(int argc, char *argv[])
             free(e);
             e = n;
         }
+    }
+    if (work_mode == -1) {
+        // cleanup other files
+        if (chdir(top_dir))
+        {
+            fprintf(stderr, "Could not change to dir: %s\n", top_dir);
+        } else
+        {
+            if (!access("makefile.dirs", R_OK))
+            {
+                unlink("makefile.dirs");
+                unlink("install");
+                unlink("makefile");
+            }
+        }
+        goto work_skipped;
     }
 
     int missing = resolve_all_dependencies();
