@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 
 #include "logging.h"
 
@@ -15,6 +18,15 @@ extern int io_init(const char *argv0)
 {
     zzip_error_t err;
     zipfile = zzip_dir_open(argv0, &err);
+    if (!zipfile) {
+        pid_t pid = getpid();
+        char b1[64];
+        char b2[1024];
+        sprintf(b1, "/proc/%i/exe", pid);
+        if (readlink(b1, b2, 1024) == -1)
+            fprintf(stderr, "readlink on %s failed\n", b1);
+        zipfile = zzip_dir_open(b2, &err);
+    }
     if (!zipfile)
     {
         fprintf(stderr, "Error: failed to open zipfile");
