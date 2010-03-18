@@ -22,10 +22,14 @@ extern int io_init(const char *argv0)
         pid_t pid = getpid();
         char b1[64];
         char b2[1024];
+        int k;
         sprintf(b1, "/proc/%i/exe", pid);
-        if (readlink(b1, b2, 1024) == -1)
+        if ((k = readlink(b1, b2, 1024)) == -1) {
             fprintf(stderr, "readlink on %s failed\n", b1);
-        zipfile = zzip_dir_open(b2, &err);
+        } else {
+            b2[k] = 0;
+            zipfile = zzip_dir_open(b2, &err);
+        }
     }
     if (!zipfile)
     {
