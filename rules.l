@@ -44,6 +44,7 @@ skip-install            return SKIP_INSTALL;
 skip-shared             return SKIP_SHARED;
 skip-static             return SKIP_STATIC;
 convenience             return CONVENIENCE_LIB;
+clean-files             return CLEAN_FILES;
 version-info            return VERSION_INFO;
 version-number          return VERSION_NUMBER;
 true                    return TRUE_VALUE;

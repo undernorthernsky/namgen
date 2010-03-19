@@ -15,7 +15,7 @@ endif
 
 # clean target for this sub-dir
 {{THIS_DIR}}_clean:
-	(cd {{PATH_FROM_TOP}} && rm -rf $(FILES_TO_CLEAN) $({{THIS_DIR}}_TARGETS))
+	(cd {{PATH_FROM_TOP}} && rm -rf $(FILES_TO_CLEAN) $({{THIS_DIR}}_TARGETS)) {{EXTRA_CLEAN}}
 {{#HAS_VERBATIM}}
 # makefile fragment copied verbatim from build.rules
 {{VERBATIM}}{{/HAS_VERBATIM}}{{#PROGRAM_RULES}}

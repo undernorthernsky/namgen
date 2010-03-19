@@ -218,6 +218,7 @@ static ngt_dictionary* dict_for_library_decl(target_entry *target)
 
 ngt_dictionary* dict_for_module(module_entry *module)
 {
+   stringbuilder *ec_sb = NULL;
    assert(module);
    ngt_dictionary *dict = ngt_dictionary_new();
   
@@ -236,6 +237,16 @@ ngt_dictionary* dict_for_module(module_entry *module)
 
    LL_FOREACH(module->targets, target)
    {
+      if (target->extra_clean)
+      {
+          if (!ec_sb)
+          {
+            ec_sb = sb_new();
+            sb_append_str(ec_sb, "\n\trm -f");
+          }
+          sb_append_str(ec_sb, " ");
+          sb_append_str(ec_sb, target->extra_clean); 
+      }
       ngt_dictionary *target_dict = NULL;
       switch(target->type)
       {
@@ -258,6 +269,12 @@ ngt_dictionary* dict_for_module(module_entry *module)
          ngt_add_dictionary(dict, "PROGRAM_RULES", target_dict, SECTION_VISIBLE);
       else if (target->type == TYPE_LIBRARY)
          ngt_add_dictionary(dict, "LIBRARY_RULES", target_dict, SECTION_VISIBLE);
+   }
+   if (ec_sb)
+   {
+      sb_append_ch(ec_sb, '\0');
+      ngt_set_string(dict, "EXTRA_CLEAN", sb_cstring(ec_sb));
+      sb_destroy(ec_sb, 1);
    }
 
    return dict;

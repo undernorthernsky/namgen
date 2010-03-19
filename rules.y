@@ -46,7 +46,7 @@ int yywrap()
 SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
 SKIP_STATIC TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
 VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE
-EXPORT_INC CONVENIENCE_LIB OCOMMENT ECOMMENT SKIP_IF
+EXPORT_INC CONVENIENCE_LIB OCOMMENT ECOMMENT SKIP_IF CLEAN_FILES
 
 %%
 declarations:
@@ -144,6 +144,7 @@ def_statement:
                  | libs_statement ;
                  | version_num_statement ;
                  | add_objects_statement;
+                 | clean_files_statement;
                  | export_inc_statement ;
                  | command_statement ;
                  | skip_install_statement { target_set_skip_install(current_target, $1); }
@@ -159,6 +160,10 @@ src_statement:
 add_objects_statement:
              ADD_OBJECTS EQUALS { src_gatherer_reset(); }
              list_of_src_expr { current_target->extra_obj = src_gatherer_get_result(); }
+
+clean_files_statement:
+                     CLEAN_FILES EQUALS { src_gatherer_reset(); }
+                     list_of_src_expr { current_target->extra_clean = src_gatherer_get_result(); }
 
 command_statement:
                  COMMAND EQUALS word_variable_filename_stuff

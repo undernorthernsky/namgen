@@ -34,6 +34,7 @@ typedef struct target_entry {
    char        *path_from_top;
    char        *src;
    char        *extra_obj;
+   char        *extra_clean;
    char        *compile_flags;
    char        *link_flags;
    char        *lib_version_num;

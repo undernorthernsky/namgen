@@ -90,6 +90,7 @@ static void target_entry_free(target_entry *e)
    e->path_from_top = NULL;
    SF(e->src);
    SF(e->extra_obj);
+   SF(e->extra_clean);
    SF(e->compile_flags);
    SF(e->link_flags);
    SF(e->libs);
@@ -152,6 +153,7 @@ static target_entry* libtarget_for_worker(target_entry *prog)
     free(name_as_lib);
     SC(src);
     SC(extra_obj);
+    SC(extra_clean);
     SC(compile_flags);
     SC(link_flags);
     SC(libs);
