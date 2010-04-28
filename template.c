@@ -79,6 +79,11 @@ static void do_shared_keys(target_entry *target, ngt_dictionary *dict)
            ngt_set_string(dict, "SRC_EXTENSION", "cxx");
            ngt_set_string(dict, "LINK_CMD", "LINK_CXX"); 
        }
+       else if (strstr(target->src, ".cc"))
+       {
+           ngt_set_string(dict, "SRC_EXTENSION", "cc");
+           ngt_set_string(dict, "LINK_CMD", "LINK_CXX"); 
+       }
        else if (strstr(target->src, ".c"))
        {
            ngt_set_string(dict, "SRC_EXTENSION", "c");
