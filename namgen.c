@@ -20,6 +20,7 @@
 #include "logging.h"
 
 static ngt_template *template = NULL;
+static ngt_template *template_goto = NULL;
 static char *template_file = COMPILED_IN_TEMPLATE_FILE; 
 
 char *top_dir = NULL;
@@ -35,8 +36,21 @@ static int process_module(module_entry *module)
    ngt_dictionary *dict = dict_for_module(module);
    ngt_set_dictionary(template, dict);
    ngt_expand(template, &output_str);
-   int fd = open("makefile", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+   int fd = open("makefile.ng", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
    int wl = strlen(output_str);
+   if (write(fd, output_str, wl) != wl)
+   {
+      fprintf(stderr, "Error while writing '%s/makefile.ng'\n",
+            module->directory);
+      res = 1;
+   }
+   close(fd);
+   if (output_str)
+       free(output_str);
+   ngt_set_dictionary(template_goto, dict);
+   ngt_expand(template_goto, &output_str);
+   fd = open("makefile", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+   wl = strlen(output_str);
    if (write(fd, output_str, wl) != wl)
    {
       fprintf(stderr, "Error while writing '%s/makefile'\n",
@@ -124,7 +138,7 @@ static void create_master_include(void)
         {
             fprintf(f, "ifndef %s\n", me->skip_condition);
         }
-        fprintf(f, "include %s/makefile\n", me->path_from_top);
+        fprintf(f, "include %s/makefile.ng\n", me->path_from_top);
         fprintf(f, "ALL_CLEAN_TARGETS += %s_clean\n", me->dir_name);
         fprintf(f, "ALL_INSTALL_TARGETS += %s_install\n", me->dir_name);
         fprintf(f, "ALL_UNINSTALL_TARGETS += %s_uninstall\n", me->dir_name);
@@ -306,8 +320,14 @@ int main(int argc, char *argv[])
     }
 
     template = ngt_new();
+    template_goto = ngt_new();
 
     if (load_template(template, template_file))
+    {
+        fprintf(stderr, "Error loading template %s\n", template_file);
+        goto work_skipped;
+    }
+    if (load_template(template_goto, "sub_goto.tmpl"))
     {
         fprintf(stderr, "Error loading template %s\n", template_file);
         goto work_skipped;
@@ -330,6 +350,8 @@ work_skipped:
     template_cleanup();
     if (template)
         ngt_destroy(template);
+    if (template_goto)
+        ngt_destroy(template_goto);
 
     io_quit();
     return 0;

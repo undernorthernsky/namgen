@@ -6,16 +6,10 @@ TOP_DIR := {{TOP_DIR}}
 # all generated .d dependency files in this directory
 DEPS_{{THIS_DIR}} =
 
-# when calling make in *this* directory goto top-level makefile
-# this needs to be the first target
-ifneq ($(TOP_DIR), $(shell basename $$PWD))
-{{THIS_DIR}}_parent:
-	make -C $(TOP_DIR)
-endif
-
 # clean target for this sub-dir
 {{THIS_DIR}}_clean:
-	(cd {{PATH_FROM_TOP}} && rm -rf $(FILES_TO_CLEAN) $({{THIS_DIR}}_TARGETS)) {{EXTRA_CLEAN}}
+	rm -f $({{THIS_DIR}}_TARGETS)
+	(cd {{PATH_FROM_TOP}} && rm -rf $(FILES_TO_CLEAN)) {{EXTRA_CLEAN}}
 {{#HAS_VERBATIM}}
 # makefile fragment copied verbatim from build.rules
 {{VERBATIM}}{{/HAS_VERBATIM}}{{#PROGRAM_RULES}}
@@ -39,7 +33,7 @@ EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}} := {{EXTRA_OBJ_EXPR}}
 
 # add this program to the global 'make build' goals
 TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
-{{THIS_DIR}}_TARGETS += {{TARGET_NAME}}$(EXE_EXT)
+{{THIS_DIR}}_TARGETS += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 # link the program from the object files
 {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): {{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}})
 	@$({{LINK_CMD}}) -o $@ $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $({{THIS_DIR}}_{{TARGET_NAME}}_ALL_LIBS) $(BIN_LINK_FLAGS) $(LDFLAGS) $(LF_TGT)
@@ -73,7 +67,7 @@ LINK_FLAGS_{{TARGET_NAME}} := {{STATIC_OR_SHARED}}
 {{THIS_DIR}}_{{TARGET_NAME}}_ALL_LIBS = $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $({{THIS_DIR}}_{{TARGET_NAME}}_LIBS)
 
 TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
-{{THIS_DIR}}_TARGETS += {{TARGET_NAME}}.la
+{{THIS_DIR}}_TARGETS += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: {{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}})
 	@$({{LINK_CMD}}) -o $@ $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $({{THIS_DIR}}_{{TARGET_NAME}}_ALL_LIBS) $(LINK_FLAGS_{{TARGET_NAME}}) $(LDFLAGS) $(LF_TGT)
 
@@ -86,6 +80,8 @@ $(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}.la: {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 
 {{THIS_DIR}}_TARGETS_TO_INSTALL += $(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}.la
 {{/IF_INSTALL}}{{/LIBRARY_RULES}}
+
+{{THIS_DIR}}_build: $({{THIS_DIR}}_TARGETS)
 
 {{THIS_DIR}}_install: $({{THIS_DIR}}_TARGETS_TO_INSTALL)
 

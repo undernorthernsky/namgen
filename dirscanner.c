@@ -153,6 +153,9 @@ static int process_directory(char * name, int work_mode)
       if (!access("makefile", R_OK)) {
         unlink("makefile");
       }
+      if (!access("makefile.ng", R_OK)) {
+        unlink("makefile.ng");
+      }
       goto pd_cleanup;
    }
    current_directory = get_cwd();
