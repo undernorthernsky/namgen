@@ -12,6 +12,7 @@
 #include "utlist.h"
 #include "src_gatherer.h"
 #include "logging.h"
+#define SUPPORT_STUPID_FS
 
 static char *rules_basename = "build";
 static char *rules_suffix = ".rules";
@@ -203,6 +204,21 @@ int iterate_directories(char * dirpath, int work_mode)
             continue;
          iterate_directories(entry->d_name, work_mode);
       }
+#ifdef SUPPORT_STUPID_FS
+      // some filesystems like reisefs don't support d_type; some distributions (suse)
+      // actually use such broken filesystems... so do it the hard way:
+      else
+      {
+          struct stat st;
+          stat(entry->d_name, &st);
+          if (S_IFDIR & st.st_mode)
+          {
+              if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, ".."))
+                  continue;
+              iterate_directories(entry->d_name, work_mode);
+          }
+      }
+#endif
    }
 
 id_cleanup:
