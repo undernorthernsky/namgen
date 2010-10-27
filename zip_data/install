@@ -65,7 +65,7 @@ if [ "${src##*.}" = "la" ]; then
             $DEBUG cp $d/.libs/${libs_array[0]} $dest
             for ((i=1;i<a_len;i++)); do
                 $DEBUG rm -f $dest/${libs_array[$i]}
-                $DEBUG ln -s $dest/${libs_array[0]} $dest/${libs_array[$i]}
+                $DEBUG ln -s ${libs_array[0]} $dest/${libs_array[$i]}
             done
         else
             # probaly only a single file: libXXX.dll.a
