@@ -30,7 +30,7 @@ if [ ! -e lib/libngtemplate.a ]; then
     cd $T
 fi
 
-ld -lzzip1 2>/dev/null
+ld -lzzip 2>/dev/null
 if [ $? -eq 1 ]; then
     echo "building: libzzip"
     #wget http://sourceforge.net/projects/zziplib/files/zziplib13/0.13.58/zziplib-0.13.58.tar.bz2/download
