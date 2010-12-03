@@ -78,7 +78,7 @@ void sb_append_strf(stringbuilder* sb, const char* fmt, ...)    {
     va_list arglist;
 
     va_start(arglist, fmt);
-    xp_vasprintf(&str, fmt, arglist);
+    vasprintf(&str, fmt, arglist);
     va_end(arglist);
     
     if (!str)   {
