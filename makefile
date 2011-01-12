@@ -12,12 +12,14 @@ else
 DEBUG_FLAG := -DNDEBUG
 endif
 
+FLEX_LD := $(shell ./get-flex-lib.sh)
+
 CC      := gcc
 INC     := -Iinclude
 FLAGS   := -Wall --std=c99 -Os
 DEFS    := $(DEBUG_FLAG) $(ZIP_FLAG) -D_GNU_SOURCE -DCOMPILED_IN_TEMPLATE_FILE=\"$(TMPL_1)\"
 CFLAGS  := $(INC) $(FLAGS) $(DEFS)
-LDFLAGS := -g -rdynamic -Llib -lngtemplate -luseful -ll $(ZIP_LIBS)
+LDFLAGS := -g -rdynamic -Llib -lngtemplate -luseful -l$(FLEX_LD) $(ZIP_LIBS)
 
 .PHONY: all clean
 
