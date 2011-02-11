@@ -46,7 +46,7 @@ int yywrap()
 SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
 SKIP_STATIC TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
 VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE
-EXPORT_INC CONVENIENCE_LIB OCOMMENT ECOMMENT SKIP_IF CLEAN_FILES
+EXPORT_INC CONVENIENCE_LIB OCOMMENT ECOMMENT SKIP_IF CLEAN_FILES SRC_EXTENSION
 
 %%
 declarations:
@@ -102,6 +102,7 @@ comment_data:
 
 comment_blub:
             SRC
+            | SRC_EXTENSION
             | DEPENDS
             | FLAGS
             | LIBS
@@ -137,6 +138,7 @@ def_statements:
 
 def_statement:
                  src_statement ;
+                 | src_ext_statement;
                  | depends_statement ;
                  | destdir_statement { target_set_destdir_path(current_target, $1); }
                  | flags_statement ; 
@@ -156,6 +158,10 @@ def_statement:
 src_statement:
              SRC EQUALS { src_gatherer_reset(); }
              list_of_src_expr { current_target->src = src_gatherer_get_result(); }
+
+src_ext_statement:
+                 SRC_EXTENSION EQUALS WORD
+                 { current_target->src_ext = $3; }
 
 add_objects_statement:
              ADD_OBJECTS EQUALS { src_gatherer_reset(); }

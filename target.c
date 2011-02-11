@@ -89,6 +89,7 @@ static void target_entry_free(target_entry *e)
    e->directory = NULL;
    e->path_from_top = NULL;
    SF(e->src);
+   SF(e->src_ext);
    SF(e->extra_obj);
    SF(e->extra_clean);
    SF(e->compile_flags);
@@ -152,6 +153,7 @@ static target_entry* libtarget_for_worker(target_entry *prog)
     target_entry *lib = target_entry_new(TYPE_LIBRARY, name_as_lib);
     free(name_as_lib);
     SC(src);
+    SC(src_ext);
     SC(extra_obj);
     SC(extra_clean);
     SC(compile_flags);

@@ -10,7 +10,7 @@
 #include "logging.h"
 
 #ifdef USE_ZIP
-#include "zzip.h"
+#include "zzip/lib.h"
 
 static ZZIP_DIR *zipfile = NULL;
 

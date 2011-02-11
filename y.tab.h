@@ -73,7 +73,8 @@
      OCOMMENT = 289,
      ECOMMENT = 290,
      SKIP_IF = 291,
-     CLEAN_FILES = 292
+     CLEAN_FILES = 292,
+     SRC_EXTENSION = 293
    };
 #endif
 /* Tokens.  */
@@ -112,6 +113,7 @@
 #define ECOMMENT 290
 #define SKIP_IF 291
 #define CLEAN_FILES 292
+#define SRC_EXTENSION 293
 
 
 

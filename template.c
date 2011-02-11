@@ -68,26 +68,32 @@ static void do_shared_keys(target_entry *target, ngt_dictionary *dict)
            fprintf(stderr, "ngt_set_include_cb failed!\n");
        ngt_add_dictionary(dict, "src_depends", ngt_dictionary_new(), SECTION_VISIBLE);
  
-       // FIXME: allow explicit src extension
-       if (strstr(target->src, ".cpp"))
+       if (target->src_ext)
        {
-           ngt_set_string(dict, "SRC_EXTENSION", "cpp");
-           ngt_set_string(dict, "LINK_CMD", "LINK_CXX"); 
-       }
-       else if (strstr(target->src, ".cxx"))
+           ngt_set_string(dict, "SRC_EXTENSION", target->src_ext);
+           ngt_set_string(dict, "LINK_CMD", "LINK_CXX"); // fixme: maybe not CXX?
+       } else
        {
-           ngt_set_string(dict, "SRC_EXTENSION", "cxx");
-           ngt_set_string(dict, "LINK_CMD", "LINK_CXX"); 
-       }
-       else if (strstr(target->src, ".cc"))
-       {
-           ngt_set_string(dict, "SRC_EXTENSION", "cc");
-           ngt_set_string(dict, "LINK_CMD", "LINK_CXX"); 
-       }
-       else if (strstr(target->src, ".c"))
-       {
-           ngt_set_string(dict, "SRC_EXTENSION", "c");
-           ngt_set_string(dict, "LINK_CMD", "LINK_CC"); 
+           if (strstr(target->src, ".cpp"))
+           {
+               ngt_set_string(dict, "SRC_EXTENSION", "cpp");
+               ngt_set_string(dict, "LINK_CMD", "LINK_CXX"); 
+           }
+           else if (strstr(target->src, ".cxx"))
+           {
+               ngt_set_string(dict, "SRC_EXTENSION", "cxx");
+               ngt_set_string(dict, "LINK_CMD", "LINK_CXX"); 
+           }
+           else if (strstr(target->src, ".cc"))
+           {
+               ngt_set_string(dict, "SRC_EXTENSION", "cc");
+               ngt_set_string(dict, "LINK_CMD", "LINK_CXX"); 
+           }
+           else if (strstr(target->src, ".c"))
+           {
+               ngt_set_string(dict, "SRC_EXTENSION", "c");
+               ngt_set_string(dict, "LINK_CMD", "LINK_CC"); 
+           }
        }
    }
    if (target->cmd) {

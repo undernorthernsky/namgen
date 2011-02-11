@@ -32,6 +32,7 @@ program                 return PROGRAM;
 library                 return LIBRARY;
 worker                  return WORKER;
 src                     return SRC;
+extension               return SRC_EXTENSION;
 cmd                     return COMMAND;
 depends                 return DEPENDS; 
 flags                   return FLAGS;
