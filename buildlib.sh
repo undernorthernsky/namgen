@@ -40,7 +40,7 @@ if [ $? -eq 1 ]; then
     (cd $D && ./configure && make) >/dev/null 2>&1
     mkdir include/zzip
     cp $D/zzip/zzip.h include
-    cp $D/zzip/types.h $D/zzip/conf.h include/zzip
+    cp $D/zzip/*.h include/zzip
     cp $D/Linux_*/zzip/_config.h include/zzip
     cp $D/Linux_*/zzip/.libs/libzzip.a lib
 
