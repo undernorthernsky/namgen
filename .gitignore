@@ -2,3 +2,5 @@ data.zip
 namgen
 namgen.bin
 include
+/lib
+/*.o

@@ -40,7 +40,7 @@ COMPILE_CXX = $(echo_cxx) $(LIBTOOL) $(lt_flags) --mode=compile --tag CXX $(CXX)
 LINK_CXX    = $(echo_link) $(LIBTOOL) $(lt_flags) --mode=link --tag CXX $(CXX) $(LINK_DEBUG) $(LINK_W32_EXTRA) -no-fast-install
 
 MKDEP_CC    = $(echo_mkdep) $(CC) $(CF_TGT) $(INC) $(DEFS) -MF"$@" -MM -MP -MT"$@" -MT"$(<:$(suffix $<)=.o)" $<
-COMPILE_CC  = $(echo_cc) $(LIBTOOL) $(lt_flags) --mode=compile --tag CC $(CC)
+COMPILE_CC  = $(echo_cc) $(LIBTOOL) $(lt_flags) --mode=compile --tag CC $(CC) $(CCFLAGS)
 LINK_CC     = $(echo_link) $(LIBTOOL) $(lt_flags) --mode=link --tag CC $(CC) $(LINK_DEBUG) $(LINK_W32_EXTRA) -no-fast-install
 
 # always silence libtool when installing... argh, what noise
