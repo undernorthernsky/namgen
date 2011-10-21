@@ -88,9 +88,6 @@ $(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}.la: {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 {{THIS_DIR}}_uninstall: {{PATH_FROM_TOP}}
 	$(UINST_CMD) $({{THIS_DIR}}_TARGETS_TO_INSTALL)
 
-%.d :
-	echo > $@
-
 # include all dependency files if not cleaning
 ifneq "$(MAKECMDGOALS)" "clean"
 ifneq "$(DEPS_{{THIS_DIR}})" ""

@@ -79,6 +79,9 @@ UINST_CMD   = $(echo_uninstall) $(LIBTOOL) $(lt_dry_run) --silent --mode uninsta
 %.lo: %.c %.d
 	$(COMPILE_CC) -c -o $(@:.lo=.o) $<
 
+%.d :
+	@echo "Missing $@"
+
 
 # jump to a dummy declared after including the sub-makefiles
 # 'all' should be the first target
@@ -87,10 +90,6 @@ all: build
 # when cleaning a subdir delete these:
 FILES_TO_CLEAN := .libs .*.dummy *.o *.d *.la *.lo
 
-ifdef DEBUG
-	CXXFLAGS   += -ggdb
-	LINK_DEBUG := -g
-endif
 
  # build/use static or shared libs?
 ifdef BUILD_STATIC
@@ -116,6 +115,11 @@ endif
 CCFLAGS  = $(CF_TGT) $(FLAGS) $(INC) $(DEFS)
 CXXFLAGS = $(CF_TGT) $(FLAGS) $(INC) $(DEFS)
 #LDFLAGS  = $(LINK_DEBUG) $(LINK_W32_EXTRA)
+
+ifdef DEBUG
+	CXXFLAGS   += -ggdb
+	LINK_DEBUG := -g
+endif
 
 # now include sub-project makefiles
 include makefile.dirs
