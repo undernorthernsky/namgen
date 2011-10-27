@@ -84,7 +84,17 @@ src = *.cpp
 src = foo.cpp bar.cpp blub.cpp
 src = $(A_MAKE_VARIABLE)
 
-FIXME: ! vs. path-relative-to-build.rules
+Note: If you use a variable expression you may also need to set
+'extension = cxx' or something like that; this is required to
+fill the OBJ_* and DEP_* variable substitutions.
+
+Note: Something setting 'cmd = g++' (or whatever) might be needed
+as well.
+
+Under normal circumstances the file paths are assumed to be relative
+to the respective 'build.rules' file; you may also request paths
+resolution to be relative to the top-dir:
+Example: src = foo.cpp bar.cpp ! file/in/a/subdir/blub.cpp
 
 
 * Additional object files [optional]
@@ -155,6 +165,7 @@ skip-if XXX
 
 VERBATIM section
 
+per-module XXX_DIR variable; where XXX is the last-dir-component
 
 = Crosscompiling with mingw =
 

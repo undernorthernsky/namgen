@@ -211,6 +211,21 @@ static void print_loaded_rules(void)
    }
 }
 
+static int namgen_version_ok = 1;
+static const int current_namgen_version =
+#include "VERSION"
+;
+
+void check_namgen_version(const char *requested_version)
+{
+    int req = atoi(requested_version);
+    if (req > current_namgen_version) {
+        namgen_version_ok = 0;
+        fprintf(stderr, "Error: Requested namgen version (%i) is too old (> %i)\n",
+                req, current_namgen_version);
+    }
+}
+
 extern void install_bt_handler(void);
 
 int main(int argc, char *argv[])
@@ -283,6 +298,10 @@ int main(int argc, char *argv[])
             free(e);
             e = n;
         }
+    }
+    if (!namgen_version_ok) {
+        fprintf(stderr, "Please update namgen\n");
+        exit(1);
     }
     if (work_mode == -1) {
         // cleanup other files

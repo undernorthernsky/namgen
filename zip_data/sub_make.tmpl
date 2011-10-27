@@ -1,7 +1,11 @@
 # This file was generated from 'build.rules' using namgen; do not edit!
 
 # the directory with the top-level makefile
+# FIXME: deprecated, going obsolete & not used; should be set once in 'make.conf'
 TOP_DIR := {{TOP_DIR}}
+
+# relative path from top-dir to this directory
+{{THIS_DIR}}_DIR := {{PATH_FROM_TOP}}
 
 # all generated .d dependency files in this directory
 DEPS_{{THIS_DIR}} =
@@ -58,6 +62,8 @@ LINK_FLAGS_{{TARGET_NAME}} := {{STATIC_OR_SHARED}}
 # dependencies
 {{#DEPENDS_SHARED}}{{THIS_DIR}}_{{TARGET_NAME}}_LIBS += {{DEPENDENCY}}.la
 {{/DEPENDS_SHARED}}
+# FIXME: dummy should be replaced with order-only-prerequisites
+# the purpose is to avoid relinking when a depended-on shared lib changes (slightly)
 {{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy: $({{THIS_DIR}}_{{TARGET_NAME}}_LIBS)
 	@if [ ! -e $@ ]; then touch $@; fi
 

@@ -52,6 +52,7 @@ true                    return TRUE_VALUE;
 false                   return FALSE_VALUE;
 VERBATIM                abort_parsing_now(); return EOF; 
 skip-if                 return SKIP_IF;
+require-ng-version      return REQUIRE_NAMGEN_VERSION;
 
 !                       return EXPR_MARK;
 =                       return EQUALS;

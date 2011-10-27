@@ -13,6 +13,7 @@ extern char* yytext;
 extern int yylex (void);
 extern int yyget_lineno();
 extern void set_parsererror(int, int, char*);
+extern void check_namgen_version(const char *);
 
 static target_entry *current_target = NULL;
 static stringbuilder *sb = NULL;
@@ -47,6 +48,7 @@ SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
 SKIP_STATIC TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
 VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE
 EXPORT_INC CONVENIENCE_LIB OCOMMENT ECOMMENT SKIP_IF CLEAN_FILES SRC_EXTENSION
+REQUIRE_NAMGEN_VERSION
 
 %%
 declarations:
@@ -54,7 +56,7 @@ declarations:
            ;
 
 declaration:
-           program_def | library_def | worker_def | comment_line | skip_condition
+           program_def | library_def | worker_def | comment_line | skip_condition | require_version
            ;
 
 program_def:
@@ -91,6 +93,8 @@ worker_def:
            }
 
 skip_condition: SKIP_IF WORD { module_set_skip_condition($2); }
+
+require_version: REQUIRE_NAMGEN_VERSION WORD { check_namgen_version($2); }
 
 comment_line:
             OCOMMENT comment_data ECOMMENT
