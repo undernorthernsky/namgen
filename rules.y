@@ -190,8 +190,10 @@ destdir_statement:
                  }
 
 version_num_statement:
-                     vnum_schema EQUALS THREE_NUMBERS
+                     vnum_schema EQUALS three_numbers_or_variable
                      { current_target->lib_version_num = strdup($3); }
+
+three_numbers_or_variable: THREE_NUMBERS | VARIABLE
 
 vnum_schema:
            VERSION_NUMBER { current_target->other_flags &= ~VERSION_INFO_SCHEMA; }
