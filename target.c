@@ -199,7 +199,7 @@ target_entry* module_add_target(target_entry *e)
    // add to current module
    LL_APPEND(current_module->targets, e);
 
-   if (e->type == TYPE_LIBRARY)
+   if (e->type == TYPE_LIBRARY || e->type == TYPE_CMI)
    {
        // hash lib-names for dependency lookup
        _e = malloc(sizeof(target_lookup_entry));

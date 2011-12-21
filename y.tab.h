@@ -75,7 +75,9 @@
      SKIP_IF = 291,
      CLEAN_FILES = 292,
      SRC_EXTENSION = 293,
-     REQUIRE_NAMGEN_VERSION = 294
+     REQUIRE_NAMGEN_VERSION = 294,
+     CONF_MAKE_INSTALL = 295,
+     SRC_DIR = 296
    };
 #endif
 /* Tokens.  */
@@ -116,6 +118,8 @@
 #define CLEAN_FILES 292
 #define SRC_EXTENSION 293
 #define REQUIRE_NAMGEN_VERSION 294
+#define CONF_MAKE_INSTALL 295
+#define SRC_DIR 296
 
 
 

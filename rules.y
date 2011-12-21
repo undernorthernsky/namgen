@@ -48,7 +48,7 @@ SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
 SKIP_STATIC TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
 VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE
 EXPORT_INC CONVENIENCE_LIB OCOMMENT ECOMMENT SKIP_IF CLEAN_FILES SRC_EXTENSION
-REQUIRE_NAMGEN_VERSION
+REQUIRE_NAMGEN_VERSION CONF_MAKE_INSTALL SRC_DIR
 
 %%
 declarations:
@@ -56,7 +56,7 @@ declarations:
            ;
 
 declaration:
-           program_def | library_def | worker_def | comment_line | skip_condition | require_version
+           program_def | library_def | worker_def | cmi_def | comment_line | skip_condition | require_version
            ;
 
 program_def:
@@ -92,6 +92,17 @@ worker_def:
                current_target = NULL;
            }
 
+cmi_def:
+       CONF_MAKE_INSTALL quoted_name
+       {
+               current_target = target_entry_new(TYPE_CMI, $2);
+       }
+       def_content
+       {
+           module_add_target(current_target);
+           current_target = NULL;
+       }
+
 skip_condition: SKIP_IF WORD { module_set_skip_condition($2); }
 
 require_version: REQUIRE_NAMGEN_VERSION WORD { check_namgen_version($2); }
@@ -106,6 +117,7 @@ comment_data:
 
 comment_blub:
             SRC
+            | SRC_DIR
             | SRC_EXTENSION
             | DEPENDS
             | FLAGS
@@ -142,6 +154,7 @@ def_statements:
 
 def_statement:
                  src_statement ;
+                 | src_dir_statement;
                  | src_ext_statement;
                  | depends_statement ;
                  | destdir_statement { target_set_destdir_path(current_target, $1); }
@@ -165,6 +178,10 @@ src_statement:
 
 src_ext_statement:
                  SRC_EXTENSION EQUALS WORD
+                 { current_target->src_ext = $3; }
+
+src_dir_statement:
+                 SRC_DIR EQUALS word_variable_filename_stuff
                  { current_target->src_ext = $3; }
 
 add_objects_statement:

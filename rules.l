@@ -31,7 +31,9 @@ static void abort_parsing_now()
 program                 return PROGRAM; 
 library                 return LIBRARY;
 worker                  return WORKER;
+external                return CONF_MAKE_INSTALL;
 src                     return SRC;
+src-dir                 return SRC_DIR;
 extension               return SRC_EXTENSION;
 cmd                     return COMMAND;
 depends                 return DEPENDS; 

@@ -40,7 +40,7 @@ static void template_cleanup_cb(const char* name, char* template)
     // do nothing; free()ing causes 'double free' errors
 }
 
-static const char* get_target_install_subdir(target_entry *e)
+const char* get_target_install_subdir(target_entry *e)
 {
    if (e->dest_sub_path)
       return e->dest_sub_path;
@@ -227,6 +227,53 @@ static ngt_dictionary* dict_for_library_decl(target_entry *target)
    return dict;
 }
 
+static void strip_string_end(char *s, char *suffix)
+{
+    char *found = strstr(s, suffix);
+    if (found)
+        *found = 0;
+}
+
+static ngt_dictionary* dict_for_external_decl(target_entry *target)
+{
+   ngt_dictionary *dict = ngt_dictionary_new();
+   ngt_set_string(dict, "TARGET_NAME", target->target_name);
+   ngt_set_string(dict, "SRC_EXPR", target->src);
+   if (target->src_ext) {
+       ngt_set_string(dict, "EXTRACTED_DIRNAME", target->src_ext);
+   } else {
+       // try to guess from the filename
+       char *tmp = strdup(rindex(target->src, '/') ? rindex(target->src, '/') + 1 : target->src);
+       strip_string_end(tmp, ".tar.gz");
+       strip_string_end(tmp, ".tar.bz2");
+       DEBUG("Guessed archive-dir as [%s]\n", tmp);
+       ngt_set_string(dict, "EXTRACTED_DIRNAME", tmp);
+       free(tmp);
+   }
+   if (target->cmd) {
+       ngt_set_string(dict, "CMD", target->cmd);
+   } else {
+       ngt_set_string(dict, "CMD", "$(CONFIGURE_MAKE_INSTALL)");
+   }
+
+   depend_list_entry *dep;
+   stringbuilder *sb = sb_new();
+   LL_FOREACH(target->dependencies, dep)
+   {
+      ngt_dictionary * dict_dep = ngt_dictionary_new();
+      sb_reset(sb);
+      sb_append_str(sb, dep->ptr->path_from_top);
+      sb_append_str(sb, "/");
+      sb_append_str(sb, dep->ptr->target_name);
+      char *p = sb_make_cstring(sb);
+      ngt_set_string(dict_dep, "DEPENDENCY", p);
+      free(p);
+      ngt_add_dictionary(dict, "DEPENDS", dict_dep, SECTION_VISIBLE);
+   }
+
+   return dict;
+}
+
 ngt_dictionary* dict_for_module(module_entry *module)
 {
    stringbuilder *ec_sb = NULL;
@@ -271,6 +318,9 @@ ngt_dictionary* dict_for_module(module_entry *module)
             fprintf(stderr, "Program-bug: Got a TYPE_WORKER target in %s\n", __FUNCTION__);
             exit(1);
             break;
+         case TYPE_CMI:
+            target_dict = dict_for_external_decl(target);
+            break;
       }
       
       ngt_set_string(target_dict, "THIS_DIR", module->dir_name);
@@ -280,6 +330,8 @@ ngt_dictionary* dict_for_module(module_entry *module)
          ngt_add_dictionary(dict, "PROGRAM_RULES", target_dict, SECTION_VISIBLE);
       else if (target->type == TYPE_LIBRARY)
          ngt_add_dictionary(dict, "LIBRARY_RULES", target_dict, SECTION_VISIBLE);
+      else if (target->type == TYPE_CMI)
+         ngt_add_dictionary(dict, "CMI_RULES", target_dict, SECTION_VISIBLE);
    }
    if (ec_sb)
    {

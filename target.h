@@ -6,7 +6,8 @@
 typedef enum target_type {
    TYPE_PROGRAM,
    TYPE_LIBRARY,
-   TYPE_WORKER
+   TYPE_WORKER,
+   TYPE_CMI
 } target_type;
 
 struct target_entry;
