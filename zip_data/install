@@ -39,7 +39,7 @@ if [ ! -e $src ]; then
     exit 1
 fi
 if [ ! -d $dest ]; then
-    mkdir $dest || exit 1
+    mkdir -p $dest || exit 1
 fi
 
 d=$(dirname $src)
