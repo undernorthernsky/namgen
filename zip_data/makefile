@@ -91,7 +91,7 @@ all: build
 FILES_TO_CLEAN := .libs .*.dummy *.o *.d *.la *.lo
 
 
- # build/use static or shared libs?
+# build/use static or shared libs?
 ifdef BUILD_STATIC
 	LIB_BUILD_SHARED := 
 else
@@ -117,6 +117,7 @@ CXXFLAGS = $(CF_TGT) $(FLAGS) $(INC) $(DEFS)
 #LDFLAGS  = $(LINK_DEBUG) $(LINK_W32_EXTRA)
 
 ifdef DEBUG
+	CCFLAGS    += -ggdb
 	CXXFLAGS   += -ggdb
 	LINK_DEBUG := -g
 endif
