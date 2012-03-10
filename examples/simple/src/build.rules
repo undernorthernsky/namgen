@@ -1,0 +1,10 @@
+program "foo" {
+   src = a.c b.c
+   depends = libbar
+   flags = -DFOO
+   ld-flags = -rdynamic -lm
+}
+
+library "libbar" {
+   src = c.c
+}

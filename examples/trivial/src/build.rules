@@ -1,0 +1,7 @@
+program "test1" {
+   src = *.c
+}
+
+program "test2" {
+   src = test2.cpp test2b.cpp
+}
