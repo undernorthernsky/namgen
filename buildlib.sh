@@ -33,8 +33,7 @@ fi
 ld -lzzip 2>/dev/null
 if [ $? -eq 1 ]; then
     echo "building: libzzip"
-    #wget http://sourceforge.net/projects/zziplib/files/zziplib13/0.13.58/zziplib-0.13.58.tar.bz2/download
-    cp /home/tok/src/airepo/third_party/zziplib-0.13.58.tar.bz2 .
+    wget -O zziplib-0.13.58.tar.bz2 http://sourceforge.net/projects/zziplib/files/zziplib13/0.13.58/zziplib-0.13.58.tar.bz2/download
     tar jxf zziplib-0.13.58.tar.bz2
     D=zziplib-0.13.58
     (cd $D && ./configure && make) >/dev/null 2>&1
@@ -47,21 +46,3 @@ if [ $? -eq 1 ]; then
     rm -rf $D zziplib-*.tar.bz2
 fi
 rm -f a.out
-
-#cd ngtemplate/lib/libuseful/src
-#cmake CMakeLists.txt
-#make
-#cp include/*.h $T/include
-#cp libuseful.a $T/lib
-#make clean
-#rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
-#cd $T
-
-#cd ngtemplate/src
-#cmake CMakeLists.txt
-#make
-#cp include/*.h $T/include
-#cp libngtemplate.a $T/lib
-#make clean
-#rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
-#cd $T
