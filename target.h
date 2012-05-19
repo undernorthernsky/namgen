@@ -81,6 +81,8 @@ extern void target_set_skip_shared(target_entry *e, const char *s);
 extern void target_set_skip_static(target_entry *e, const char *s);
 extern void target_set_convencience(target_entry *e, const char *s);
 
+extern module_entry* module_find_by(const char *name);
+extern int module_check_name_unique(void);
 extern module_entry* module_entry_new(const char *name, char *directory, char *path_from_top);
 extern void module_set_skip_condition(char *s);
 extern target_entry* module_add_target(target_entry *e);

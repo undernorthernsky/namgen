@@ -341,6 +341,12 @@ int main(int argc, char *argv[])
         goto work_skipped;
     }
 
+    int module_name_clashes = module_check_name_unique();
+    if (module_name_clashes)
+    {
+       fprintf(stderr, "Continuing in spite of possible name clashes!\n");
+    }
+
     int missing = resolve_all_dependencies();
     if (!missing)
     {

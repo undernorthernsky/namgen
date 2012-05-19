@@ -40,6 +40,43 @@ void target_add_dependency(target_entry *e, const char *s)
    LL_APPEND(e->dependencies, de);
 }
 
+module_entry* module_find_by(const char *name)
+{
+   module_entry *me = NULL, *found = NULL;
+   LL_FOREACH(all_modules, me)
+   {
+      if (strcmp(name, me->dir_name) == 0)
+      {
+         found = me;
+         break;
+      }
+   }
+   return found;
+}
+
+int module_check_name_unique(void)
+{
+   int num_clashes = 0;
+   module_entry *outer= NULL, *inner = NULL;
+   /* FIXME: this warns twice about each name clash - once might be enough */
+   LL_FOREACH(all_modules, outer)
+   {
+      LL_FOREACH(all_modules, inner)
+      {
+         if (outer == inner)
+            continue;
+         if (strcmp(outer->dir_name, inner->dir_name) == 0)
+         {
+            ++num_clashes;
+            fprintf(stderr, "Warning: directory name clash '%s' for rules in\n"
+                  " * %s\n * %s\n", outer->dir_name,
+                  outer->directory, inner->directory);
+         }
+      }
+   }
+   return num_clashes;
+}
+
 module_entry* module_entry_new(const char *name, char *directory, char *pft)
 {
    module_entry *e = malloc(sizeof(module_entry));
