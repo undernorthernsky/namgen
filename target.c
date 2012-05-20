@@ -216,7 +216,12 @@ target_entry* module_add_target(target_entry *e)
    target_lookup_entry *_e = NULL;
    HASH_FIND_STR(all_targets_hash, e->target_name, _e);
    if (_e)
+   {
+      fprintf(stderr, "Warning: target name clash '%s' declared in\n"
+            " * %s\n * %s\n", e->target_name,
+            current_module->directory, _e->ptr->directory);
       return _e->ptr;
+   }
 
    if (e->type == TYPE_WORKER)
    {
@@ -236,14 +241,11 @@ target_entry* module_add_target(target_entry *e)
    // add to current module
    LL_APPEND(current_module->targets, e);
 
-   if (e->type == TYPE_LIBRARY || e->type == TYPE_CMI)
-   {
-       // hash lib-names for dependency lookup
-       _e = malloc(sizeof(target_lookup_entry));
-       _e->target_name = e->target_name;
-       _e->ptr = e;
-       HASH_ADD_KEYPTR(hh, all_targets_hash, _e->target_name, strlen(_e->target_name), _e);
-   }
+   // hash lib-names for dependency lookup
+   _e = malloc(sizeof(target_lookup_entry));
+   _e->target_name = e->target_name;
+   _e->ptr = e;
+   HASH_ADD_KEYPTR(hh, all_targets_hash, _e->target_name, strlen(_e->target_name), _e);
    return NULL;
 }
 
