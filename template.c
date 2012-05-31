@@ -3,6 +3,7 @@
 #include "stringbuilder.h"
 #include "template.h"
 #include "utlist.h"
+#include "uthash.h"
 #include "myio.h"
 #include "logging.h"
 
@@ -117,11 +118,40 @@ static void do_shared_keys(target_entry *target, ngt_dictionary *dict)
    }
 }
 
+static void append_dep_include(target_entry *target, stringbuilder *include, target_lookup_entry **done)
+{
+    target_lookup_entry *_e = NULL;
+    HASH_FIND_STR(*done, target->target_name, _e);
+    if (_e)
+    {
+        DEBUG("Skipping '%s' - already done\n", target->target_name);
+        return;
+    }
+
+    sb_append_str(include, " -I");
+    if (target->export_include)
+        sb_append_str(include, target->export_include);
+    else
+        sb_append_str(include, target->path_from_top);
+
+    _e = malloc(sizeof(target_lookup_entry));
+    _e->target_name = target->target_name; // sharing the cstr data!
+    _e->ptr = NULL;
+    HASH_ADD_KEYPTR(hh, *done, target->target_name, strlen(target->target_name), _e);
+
+    depend_list_entry *dep;
+    LL_FOREACH(target->dependencies, dep)
+    {
+        append_dep_include(dep->ptr, include, done);
+    }
+}
+
 static void do_dependencies(target_entry *target, ngt_dictionary *dict)
 {
    depend_list_entry *dep;
    stringbuilder *sb = sb_new();
    stringbuilder *include = sb_new();
+   target_lookup_entry *include_done = NULL;
    LL_FOREACH(target->dependencies, dep)
    {
       ngt_dictionary * dict_dep = ngt_dictionary_new();
@@ -129,11 +159,7 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
       sb_append_str(sb, dep->ptr->path_from_top);
       sb_append_str(sb, "/");
       sb_append_str(sb, dep->ptr->target_name);
-      sb_append_str(include, " -I");
-      if (dep->ptr->export_include)
-         sb_append_str(include, dep->ptr->export_include);
-      else
-         sb_append_str(include, dep->ptr->path_from_top);
+      append_dep_include(dep->ptr, include, &include_done);
       char *p = sb_make_cstring(sb);
       ngt_set_string(dict_dep, "DEPENDENCY", p);
       free(p);
@@ -162,6 +188,13 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
    }
    sb_destroy(sb, 1);
    sb_destroy(include, 1);
+   target_lookup_entry *a;
+   while (include_done)
+   {
+       a = include_done;
+       HASH_DEL(include_done, a);
+       free(a);
+   }
 }
 
 static ngt_dictionary* dict_for_program_decl(target_entry *target)

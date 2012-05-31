@@ -1,0 +1,6 @@
+program "main" {
+    src = *.c
+    /* note: we do NOT depend on libbar */
+    depends = libfoo
+}
+

@@ -1,0 +1,4 @@
+library "libfoo" {
+    src = *.c
+    depends = libbar
+}
