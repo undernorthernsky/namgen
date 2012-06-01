@@ -95,12 +95,15 @@ $(DESTDIR)/{{DEST_SUB}}/{{TARGET_NAME}}.la: {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 
 SRC_{{THIS_DIR}}_{{TARGET_NAME}} := {{SRC_EXPR}}
 EXPLODED_{{THIS_DIR}}_{{TARGET_NAME}} := {{PATH_FROM_TOP}}/{{EXTRACTED_DIRNAME}}
+PATCHES_{{THIS_DIR}}_{{TARGET_NAME}}  := $(abspath {{LIST_OF_PATCHES}})
 {{#DEPENDS}}{{THIS_DIR}}_{{TARGET_NAME}}_DEP_LIBS += {{DEPENDENCY}}.la
 {{/DEPENDS}}
 
 {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: $(SRC_{{THIS_DIR}}_{{TARGET_NAME}}) | $(STAGEDIR) $({{THIS_DIR}}_{{TARGET_NAME}}_DEP_LIBS)
 	@echo "[extern] {{TARGET_NAME}}"
 	@tar -C {{PATH_FROM_TOP}} -axf $(SRC_{{THIS_DIR}}_{{TARGET_NAME}})
+	@if [ -n "$(PATCHES_{{THIS_DIR}}_{{TARGET_NAME}})" ]; then \
+        (cd $(EXPLODED_{{THIS_DIR}}_{{TARGET_NAME}}) && cat $(PATCHES_{{THIS_DIR}}_{{TARGET_NAME}}) | patch -p 1); fi
 	@( cd $(EXPLODED_{{THIS_DIR}}_{{TARGET_NAME}}) && \
         {{CMD}} ) >{{PATH_FROM_TOP}}/{{TARGET_NAME}}-build.log 2>&1
 	@rm -rf $(EXPLODED_{{THIS_DIR}}_{{TARGET_NAME}})

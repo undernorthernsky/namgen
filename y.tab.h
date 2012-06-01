@@ -77,7 +77,8 @@
      SRC_EXTENSION = 293,
      REQUIRE_NAMGEN_VERSION = 294,
      CONF_MAKE_INSTALL = 295,
-     SRC_DIR = 296
+     SRC_DIR = 296,
+     PATCHES = 297
    };
 #endif
 /* Tokens.  */
@@ -120,6 +121,7 @@
 #define REQUIRE_NAMGEN_VERSION 294
 #define CONF_MAKE_INSTALL 295
 #define SRC_DIR 296
+#define PATCHES 297
 
 
 

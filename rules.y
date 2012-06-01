@@ -48,7 +48,7 @@ SRC DEPENDS FLAGS LIBS LDFLAGS ADD_OBJECTS DESTDIR SKIP_INSTALL SKIP_SHARED
 SKIP_STATIC TRUE_VALUE FALSE_VALUE VERSION_INFO VERSION_NUMBER THREE_NUMBERS
 VARIABLE WORD WILDCARD FILENAME STUFF EXPR_MARK EQUALS QUOTE OBRACE EBRACE
 EXPORT_INC CONVENIENCE_LIB OCOMMENT ECOMMENT SKIP_IF CLEAN_FILES SRC_EXTENSION
-REQUIRE_NAMGEN_VERSION CONF_MAKE_INSTALL SRC_DIR
+REQUIRE_NAMGEN_VERSION CONF_MAKE_INSTALL SRC_DIR PATCHES
 
 %%
 declarations:
@@ -157,6 +157,7 @@ def_statement:
                  | src_dir_statement;
                  | src_ext_statement;
                  | depends_statement ;
+                 | patches_statement ;
                  | destdir_statement { target_set_destdir_path(current_target, $1); }
                  | flags_statement ; 
                  | ld_flags_statement ;
@@ -171,6 +172,10 @@ def_statement:
                  | skip_static_statement { target_set_skip_static(current_target, $1); }
                  | convenience_statement { target_set_convencience(current_target, $1); }
                  | comment_line ;
+
+patches_statement:
+             PATCHES EQUALS { src_gatherer_reset(); }
+             list_of_src_expr { current_target->extra_obj = src_gatherer_get_result(); }
 
 src_statement:
              SRC EQUALS { src_gatherer_reset(); }

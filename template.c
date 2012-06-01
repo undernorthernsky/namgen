@@ -283,6 +283,8 @@ static ngt_dictionary* dict_for_external_decl(target_entry *target)
        ngt_set_string(dict, "EXTRACTED_DIRNAME", tmp);
        free(tmp);
    }
+   if (target->extra_obj)
+       ngt_set_string(dict, "LIST_OF_PATCHES", target->extra_obj);
    if (target->cmd) {
        ngt_set_string(dict, "CMD", target->cmd);
    } else {
