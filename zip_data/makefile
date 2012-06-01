@@ -125,5 +125,12 @@ endif
 # now include sub-project makefiles
 include makefile.dirs
 
+# some infrastructure to build third-party libraries
+ifneq "$(STAGEDIR)" ""
+$(STAGEDIR):
+	@mkdir -p $(STAGEDIR)
+endif
+CONFIGURE_MAKE_INSTALL := ./configure --prefix $(STAGEDIR) && make install
+
 # compile everything
 build: $(TARGETS_TO_BUILD)
