@@ -9,7 +9,7 @@
 
 #include "logging.h"
 
-#ifdef USE_ZIP
+#ifdef USE_ZZIP
 #include "zzip/lib.h"
 
 static ZZIP_DIR *zipfile = NULL;

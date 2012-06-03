@@ -2,7 +2,7 @@ DEBUG := 1
 ZIP_DATA := $(wildcard zip_data/*)
 
 TMPL_1 := sub_make.tmpl
-ZIP_FLAG := -DUSE_ZIP
+ZIP_FLAG := -DUSE_ZZIP
 ZIP_LIBS := -lzzip -lz
 TARGET := namgen
 
