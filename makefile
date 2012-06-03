@@ -1,10 +1,16 @@
-DEBUG := 1
-ZIP_DATA := $(wildcard zip_data/*)
+.PHONY: all clean rclean
+
+# if we have no config, the default it to create one
+TARGET := make.conf
+# thus don't error on missing conf
+-include make.conf
+
+all: $(TARGET)
+
+make.conf:
+	./configure
 
 TMPL_1 := sub_make.tmpl
-ZIP_FLAG := -DUSE_ZZIP
-ZIP_LIBS := -lzzip -lz
-TARGET := namgen
 
 ifdef DEBUG
 DEBUG_FLAG := -ggdb
@@ -12,21 +18,17 @@ else
 DEBUG_FLAG := -DNDEBUG
 endif
 
-FLEX_LD := $(shell ./get-flex-lib.sh)
-
 CC      := gcc
 INC     := -Iinclude
 FLAGS   := -Wall --std=c99 -Os
 DEFS    := $(DEBUG_FLAG) $(ZIP_FLAG) -D_GNU_SOURCE -DCOMPILED_IN_TEMPLATE_FILE=\"$(TMPL_1)\"
 CFLAGS  := $(INC) $(FLAGS) $(DEFS)
-LDFLAGS := -g -rdynamic -Llib -lngtemplate -luseful -l$(FLEX_LD) $(ZIP_LIBS)
+LDFLAGS := -g -rdynamic -Llib -lngtemplate -luseful $(FLEX_LIB) $(ZIP_LIB)
 
-.PHONY: all clean
 
-all: $(TARGET)
-
+ZIP_DATA   := $(wildcard zip_data/*)
 NAMGEN_SRC = namgen.c myio.c target.c src_gatherer.c template.c \
-			 dirscanner.c logging.c bt.c lex.yy.c y.tab.c
+			    dirscanner.c logging.c bt.c lex.yy.c y.tab.c
 NAMGEN_OBJ = $(NAMGEN_SRC:%.c=%.o)
 
 ifdef UPDATE_GRAMMAR
@@ -58,4 +60,4 @@ clean:
 	rm -f namgen.bin *.o data.zip
 
 rclean: clean
-	rm -f namgen
+	rm -f namgen lib/* make.conf

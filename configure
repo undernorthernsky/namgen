@@ -1,0 +1,65 @@
+#!/bin/bash
+
+have_error=0
+
+function error() {
+   echo Error: $@ 1>&2
+   have_error=1
+}
+
+function check_ld() {
+   ld -l$1 1>/dev/null 2>/dev/null
+   local err=$?
+   rm -f a.out 2>/dev/null
+   return $err
+}
+
+# either libl or libfl
+function check_flexlib() {
+   check_ld l
+   if [ $? -eq 0 ]; then
+      FLEX_LIB=l
+   else
+      check_ld fl
+      if [ $? -eq 0 ]; then
+         FLEX_LIB=fl
+      else
+         error "Failed to find flex library"
+      fi
+   fi
+}
+
+# either libzip or zziplib
+function check_zip() {
+   check_ld zip
+   if [ $? -eq 0 ]; then
+      ZIP_FLAG=USE_LIBZIP
+      ZIP_LIB=zip
+   else
+      check_ld zzip
+      if [ $? -eq 0 ]; then
+         ZIP_FLAG=USE_ZZIP
+         ZIP_LIB=zzip
+      else
+         error "Failed to find libzip or zziplib"
+      fi
+   fi
+}
+
+function output() {
+   cat <<EOF
+TARGET := namgen
+FLEX_LIB := -l$FLEX_LIB
+ZIP_FLAG := -D$ZIP_FLAG
+ZIP_LIB  := -l$ZIP_LIB
+EOF
+}
+
+check_flexlib
+check_zip
+
+if [ $have_error -ne 0 ]; then
+   exit 1
+fi
+
+output >make.conf

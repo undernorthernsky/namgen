@@ -4,3 +4,4 @@ namgen.bin
 include
 /lib
 /*.o
+make.conf
