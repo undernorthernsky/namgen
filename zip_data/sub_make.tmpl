@@ -27,8 +27,6 @@ EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}} := {{EXTRA_OBJ_EXPR}}
 # defaults to using the shared-lib (if available)
 {{#DEPENDS_SHARED}}{{THIS_DIR}}_{{TARGET_NAME}}_LIBS += {{DEPENDENCY}}.la
 {{/DEPENDS_SHARED}}
-{{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy: $({{THIS_DIR}}_{{TARGET_NAME}}_LIBS)
-	@if [ ! -e $@ ]; then touch $@; fi
 
 {{#DEPENDS_STATIC}}{{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS += {{DEPENDENCY}}.la
 {{/DEPENDS_STATIC}}
@@ -40,8 +38,10 @@ TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 {{THIS_DIR}}_TARGETS += {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT)
 # prevent 'No such file or directory' bug if install-dir does not exist
 {{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): | $(DESTDIR)/{{DEST_SUB}}/ $(DESTDIR)/lib
+# order-only prerequisites when depending on shared libs
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): | $({{THIS_DIR}}_{{TARGET_NAME}}_LIBS)
 # link the program from the object files
-{{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): {{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}})
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}$(EXE_EXT): $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}})
 	@$({{LINK_CMD}}) -o $@ $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $({{THIS_DIR}}_{{TARGET_NAME}}_ALL_LIBS) $(BIN_LINK_FLAGS) $(LDFLAGS) $(LF_TGT)
 
 # should this program be installed into DESTDIR?
@@ -64,10 +64,6 @@ LINK_FLAGS_{{TARGET_NAME}} := {{STATIC_OR_SHARED}}
 # dependencies
 {{#DEPENDS_SHARED}}{{THIS_DIR}}_{{TARGET_NAME}}_LIBS += {{DEPENDENCY}}.la
 {{/DEPENDS_SHARED}}
-# FIXME: dummy should be replaced with order-only-prerequisites
-# the purpose is to avoid relinking when a depended-on shared lib changes (slightly)
-{{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy: $({{THIS_DIR}}_{{TARGET_NAME}}_LIBS)
-	@if [ ! -e $@ ]; then touch $@; fi
 
 {{#DEPENDS_STATIC}}{{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS += {{DEPENDENCY}}.la
 {{/DEPENDS_STATIC}}
@@ -78,7 +74,9 @@ TARGETS_TO_BUILD += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 {{THIS_DIR}}_TARGETS += {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la
 # prevent 'No such file or directory' bug if install-dir does not exist
 {{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: | $(DESTDIR)/{{DEST_SUB}}/ $(DESTDIR)/lib
-{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: {{PATH_FROM_TOP}}/.{{TARGET_NAME}}.dummy $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}})
+# order-only prerequisites when depending on shared libs
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: | $({{THIS_DIR}}_{{TARGET_NAME}}_LIBS)
+{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: $({{THIS_DIR}}_{{TARGET_NAME}}_STATIC_LIBS) $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}})
 	@$({{LINK_CMD}}) -o $@ $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(EXTRA_OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $({{THIS_DIR}}_{{TARGET_NAME}}_ALL_LIBS) $(LINK_FLAGS_{{TARGET_NAME}}) $(LDFLAGS) $(LF_TGT)
 
 {{#DEPENDS_STATIC}}{{PATH_FROM_TOP}}/{{TARGET_NAME}}.la: {{DEPENDENCY}}.la

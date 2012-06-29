@@ -76,7 +76,7 @@ not what you want; let's fix that:
    [install]   out/bin/test2
    $ make clean
    rm -f src/test1 src/test2
-   (cd src && rm -rf .libs .*.dummy *.o *.d *.la *.lo)
+   (cd src && rm -rf .libs *.o *.d *.la *.lo)
 
 The default target is to build everything, you can change that in
 the top-level makefile. This file is only created when it does not

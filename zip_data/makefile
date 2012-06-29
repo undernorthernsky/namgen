@@ -88,7 +88,7 @@ UINST_CMD   = $(echo_uninstall) $(LIBTOOL) $(lt_dry_run) --silent --mode uninsta
 all: build
 
 # when cleaning a subdir delete these:
-FILES_TO_CLEAN := .libs .*.dummy *.o *.d *.la *.lo
+FILES_TO_CLEAN := .libs *.o *.d *.la *.lo
 
 
 # build/use static or shared libs?
