@@ -1,3 +1,7 @@
+--
+title: namgen documentation: tutorial
+--
+
 ## First steps ##
 
 Assuming you have build namgen let's take it for a spin:
