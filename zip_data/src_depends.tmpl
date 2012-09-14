@@ -11,3 +11,10 @@ DEPS_{{THIS_DIR}}                    += $(DEPS_{{THIS_DIR}}_{{TARGET_NAME}})
 # when generating .d files and compiling of this program set CF_TGT (compile flags, target)
 # to allow program-specific flags; also add -I. when someone uses <x.h> for local files
 $(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) $(DEPS_{{THIS_DIR}}_{{TARGET_NAME}}): CF_TGT := -I{{PATH_FROM_TOP}} {{INHERITED_INCLUDE}} {{TARGET_SPECIFIC_CF}}
+
+{{#DEPENDS_EXTERNAL}}
+# when depending on external libs those *have* to be build before even compiling the
+# source code of {{TARGET_NAME}}
+# FIXME: this is a result of the incomplete dependency graph where 3.rd party libs are involved
+$(OBJ_{{THIS_DIR}}_{{TARGET_NAME}}) $(OBJ_LO_{{THIS_DIR}}_{{TARGET_NAME}}) : {{DEPENDENCY}}
+{{/DEPENDS_EXTERNAL}}

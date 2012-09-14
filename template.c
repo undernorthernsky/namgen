@@ -151,7 +151,9 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
    depend_list_entry *dep;
    stringbuilder *sb = sb_new();
    stringbuilder *include = sb_new();
+   stringbuilder *sb_ext = sb_new();
    target_lookup_entry *include_done = NULL;
+   int has_ext_depends = 0;
    LL_FOREACH(target->dependencies, dep)
    {
       ngt_dictionary * dict_dep = ngt_dictionary_new();
@@ -162,6 +164,13 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
       append_dep_include(dep->ptr, include, &include_done);
       char *p = sb_make_cstring(sb);
       ngt_set_string(dict_dep, "DEPENDENCY", p);
+      if (dep->ptr->type == TYPE_CMI)
+      {
+          sb_append_str(sb_ext, p);
+          sb_append_str(sb_ext, ".la ");
+          has_ext_depends = 1;
+          DEBUG("%s depends on external: %s\n", target->target_name, dep->ptr->target_name);
+      }
       free(p);
       /*
       if (!(dep->ptr->other_flags & SKIP_INSTALL_MASK))
@@ -179,6 +188,14 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
       else
          depends_what = "DEPENDS_STATIC";
       ngt_add_dictionary(dict, depends_what, dict_dep, SECTION_VISIBLE);
+      if (has_ext_depends)
+      {
+          ngt_dictionary * de_dict = ngt_dictionary_new();
+          p = sb_make_cstring(sb_ext);
+          ngt_set_string(de_dict, "DEPENDENCY", p);
+          free(p);
+          ngt_add_dictionary(dict, "DEPENDS_EXTERNAL", de_dict, SECTION_VISIBLE);
+      }
    }
    if (include->pos)
    {
@@ -188,6 +205,7 @@ static void do_dependencies(target_entry *target, ngt_dictionary *dict)
    }
    sb_destroy(sb, 1);
    sb_destroy(include, 1);
+   sb_destroy(sb_ext, 1);
    target_lookup_entry *a;
    while (include_done)
    {
